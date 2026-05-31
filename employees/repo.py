@@ -3,6 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from models import Employee
 from exceptions import ConflictException
 
@@ -51,3 +52,8 @@ async def update_employee(employee: Employee, email: str, db: AsyncSession):
 async def soft_delete_employee(employee : Employee, db: AsyncSession):
     await db.commit()
     return
+
+async def get_employee_by_id_with_departments(employee_id: int, db: AsyncSession):
+    stmt = select(Employee).options(selectinload(Employee.departments)).where(Employee.id == employee_id, Employee.deleted_at.is_(None))
+    result = await db.scalars(stmt)
+    return result.first()

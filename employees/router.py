@@ -43,3 +43,18 @@ async def update_employee(employee_id: int, body: EmployeeCreate, db: AsyncSessi
 async def soft_delete_employee(employee_id: int,db: AsyncSession = Depends(get_db), _current_user: TokenPayload = Depends(get_current_user)):
     await service.soft_delete_employee(employee_id, db)
     return {"message": "Employee soft deleted"}
+
+@router.post("/{employee_id}/departments/{department_id}", response_model= EmployeeResponse)
+async def attach_department(employee_id: int, department_id: int, db: AsyncSession = Depends(get_db), _current_user: TokenPayload = Depends(get_current_user)):
+    employee = await service.attach_department(employee_id, department_id, db)
+    return employee
+
+@router.delete("/{employee_id}/departments/{department_id}", response_model= EmployeeResponse)
+async def detach_department(employee_id: int, department_id: int, db: AsyncSession = Depends(get_db), _current_user: TokenPayload = Depends(get_current_user)):
+    employee = await service.detach_department(employee_id, department_id, db)
+    return employee
+
+@router.delete("/{employee_id}/addresses/{address_id}", status_code= status.HTTP_204_NO_CONTENT)
+async def delete_employee_address(employee_id: int, address_id: int, db: AsyncSession = Depends(get_db), _current_user: TokenPayload = Depends(get_current_user)):
+    await service.delete_employee_address(employee_id, address_id, db)
+    return {"message": "Address deleted"}
