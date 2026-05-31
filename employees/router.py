@@ -32,7 +32,7 @@ async def get_employee_by_id(employee_id: int, db: AsyncSession = Depends(get_db
     return result
 
 @router.put("/{employee_id}")
-async def update_employee(employee_id: int, body: dict = Body(...), db: AsyncSession = Depends(get_db), _current_user: TokenPayload = Depends(get_current_user)):
+async def update_employee(employee_id: int, body: EmployeeCreate, db: AsyncSession = Depends(get_db), _current_user: TokenPayload = Depends(get_current_user)):
     name = body.name
     email = body.email
     age = body.age
