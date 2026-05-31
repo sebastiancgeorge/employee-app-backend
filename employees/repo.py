@@ -6,8 +6,8 @@ from sqlalchemy import select
 from models import Employee
 from exceptions import ConflictException
 
-async def create(db:AsyncSession, name: str, email: str, password_hash : str)->Employee:
-    employee = Employee(name=name, email=email, password_hash=password_hash )
+async def create(db:AsyncSession, name: str, email: str, password_hash : str, age: int | None = None)->Employee:
+    employee = Employee(name=name, email=email, password_hash=password_hash, age=age)
     db.add(employee)
     try:
         await db.commit()
@@ -49,5 +49,5 @@ async def update_employee(employee: Employee, email: str, db: AsyncSession):
     return employee
 
 async def soft_delete_employee(employee : Employee, db: AsyncSession):
-    await db.refresh(employee)
+    await db.commit()
     return

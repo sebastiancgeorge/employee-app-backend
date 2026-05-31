@@ -6,12 +6,15 @@ from fastapi import HTTPException, status
 from datetime import datetime
 
 from exceptions import NotFoundException, BadRequestException
+from addresses.service import create as create_address
 from auth.utils import hash_password
 from employees import repo
 
-async def create(db:AsyncSession, name: str, email: str, password: str)->Employee:
-    employee = await repo.create(db, name, email, hash_password(password))
-    return employee
+async def create(db:AsyncSession, name: str, email: str, password: str, age: int | None = None, address = None)->Employee:
+    employee_dict = await repo.create(db, name, email, hash_password(password), age)
+    if address is not None:
+        await create_address(db, address.line1, address.city, address.postal_code, address.country, employee_dict["id"])
+    return employee_dict
 
 async def get_all_employees(db: AsyncSession ):
     return await repo.get_all_employees(db)
@@ -28,7 +31,7 @@ async def get_employee_by_id(employee_id: int,db: AsyncSession):
         raise NotFoundException(f"Employee with id: {employee_id} not found")
     return employee
 
-async def update_employee(employee_id: int, name: str, email: str, db: AsyncSession):
+async def update_employee(employee_id: int, name: str, email: str, age: int | None, db: AsyncSession):
     employee = await repo.get_employee_by_id(employee_id, db)
     if employee is None:
         raise NotFoundException(f"Employee with id {employee_id} not found")
