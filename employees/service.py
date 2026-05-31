@@ -12,10 +12,10 @@ from auth.utils import hash_password
 from employees import repo
 
 async def create(db:AsyncSession, name: str, email: str, password: str, age: int | None = None, address = None)->Employee:
-    employee_dict = await repo.create(db, name, email, hash_password(password), age)
+    employee = await repo.create(db, name, email, hash_password(password), age)
     if address is not None:
-        await create_address(db, address.line1, address.city, address.postal_code, address.country, employee_dict["id"])
-    return employee_dict
+        await create_address(db, address.line1, address.city, address.postal_code, address.country, employee.id)
+    return employee
 
 async def get_all_employees(db: AsyncSession ):
     return await repo.get_all_employees(db)

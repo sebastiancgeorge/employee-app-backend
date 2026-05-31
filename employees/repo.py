@@ -16,7 +16,7 @@ async def create(db:AsyncSession, name: str, email: str, password_hash : str, ag
         await db.rollback()
         raise ConflictException(f"Email '{email}' is already in use")
     await db.refresh(employee)
-    return employee.to_api_dict()
+    return employee
 
 async def get_all_employees(db: AsyncSession ):
     stmt = select(Employee).where(Employee.deleted_at.is_(None))

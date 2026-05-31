@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Authentication &amp; Authorization — Freshers Training</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --purple: #a78bfa;
+    --code-bg: #0d1117;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── Slide system ────────────────────────────────── */
+  .slide {
+    display: none;
+    min-height: 100vh;
+    padding: 3rem 4rem;
+    animation: fadeIn .3s ease;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Navigation ──────────────────────────────────── */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .75rem 2rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    font-size: .9rem;
+  }
+  .nav button {
+    background: var(--accent); color: var(--bg);
+    border: none; padding: .5rem 1.5rem; border-radius: .375rem;
+    cursor: pointer; font-weight: 600; font-size: .9rem;
+    transition: opacity .2s;
+  }
+  .nav button:hover { opacity: .85; }
+  .nav button:disabled { opacity: .3; cursor: default; }
+  #progress { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* ── Typography ──────────────────────────────────── */
+  h1 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent); }
+  h2 { font-size: 1.8rem; margin-bottom: .75rem; color: var(--accent); }
+  h3 { font-size: 1.3rem; margin-bottom: .5rem; color: var(--green); }
+  p, li { font-size: 1.1rem; margin-bottom: .5rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+  li { margin-bottom: .4rem; }
+  .subtitle { color: var(--muted); font-size: 1.25rem; margin-bottom: 2rem; }
+  .tag {
+    display: inline-block; padding: .15rem .6rem; border-radius: .25rem;
+    font-size: .8rem; font-weight: 600; margin-right: .5rem;
+  }
+  .tag-blue  { background: #1e3a5f; color: var(--accent); }
+  .tag-green { background: #14532d; color: var(--green); }
+  .tag-red   { background: #7f1d1d; color: var(--red); }
+  .tag-orange { background: #7c2d12; color: var(--orange); }
+
+  /* ── Code blocks ─────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: .5rem;
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-size: .95rem;
+    line-height: 1.55;
+    margin: .75rem 0 1.25rem;
+  }
+  code {
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: .92em;
+  }
+  :not(pre) > code {
+    background: var(--code-bg);
+    padding: .15rem .4rem;
+    border-radius: .25rem;
+    border: 1px solid var(--border);
+  }
+
+  .kw  { color: #c678dd; }
+  .fn  { color: #61afef; }
+  .str { color: #98c379; }
+  .cm  { color: #5c6370; font-style: italic; }
+  .num { color: #d19a66; }
+  .op  { color: #56b6c2; }
+  .dec { color: #e5c07b; }
+  .typ { color: #e06c75; }
+  .hi  { background: rgba(56,189,248,.12); display: block; margin: 0 -1.5rem; padding: 0 1.5rem; }
+
+  /* ── Layout helpers ──────────────────────────────── */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 1rem 0; }
+  .col-label { font-weight: 700; margin-bottom: .5rem; font-size: 1rem; }
+  .box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: .5rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .box-red    { border-left: 4px solid var(--red); }
+  .box-green  { border-left: 4px solid var(--green); }
+  .box-blue   { border-left: 4px solid var(--accent); }
+  .box-orange { border-left: 4px solid var(--orange); }
+  .box-purple { border-left: 4px solid var(--purple); }
+
+  .mt1 { margin-top: 1rem; }
+  .mt2 { margin-top: 2rem; }
+  .mb1 { margin-bottom: 1rem; }
+  .gap1 { gap: 1rem; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 1rem 0;
+    font-size: 1rem;
+  }
+  th, td { padding: .6rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--accent); font-weight: 600; background: var(--surface); }
+
+  .title-slide {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .title-slide h1 { font-size: 3.5rem; margin-bottom: .5rem; }
+  .title-slide .subtitle { font-size: 1.4rem; }
+
+  .section-divider {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .section-divider h1 { font-size: 3rem; }
+  .section-number {
+    font-size: 5rem; font-weight: 800; color: var(--accent); opacity: .3;
+    margin-bottom: .5rem;
+  }
+
+  .break-slide {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+  .break-slide h1 { font-size: 4rem; color: var(--orange); }
+  .break-slide p { font-size: 1.5rem; color: var(--muted); margin-top: 1rem; }
+
+  .tree { font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: .95rem; line-height: 1.7; }
+  .tree .muted { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SLIDE 1 — Title
+     ============================================================ -->
+<section class="slide title-slide active" id="s1">
+  <h1>Authentication &amp; Authorization</h1>
+  <p class="subtitle">Password Hashing &middot; JWT &middot; OAuth2 Password Flow &middot; Role-Based Access Control</p>
+</section>
+
+<!-- ============================================================
+     SLIDE 2 — Agenda
+     ============================================================ -->
+<section class="slide" id="s2">
+  <h1>What We Will Cover</h1>
+  <div class="mt1">
+    <div class="box box-blue">
+      <h3>Session 1 &mdash; Authentication</h3>
+      <p>Authentication vs Authorization &middot; Password hashing with bcrypt &middot; Login endpoint &middot; JWT tokens &middot; Auth middleware</p>
+    </div>
+    <div class="box box-orange" style="text-align: center;">
+      <h3>Break</h3>
+    </div>
+    <div class="box box-green">
+      <h3>Session 2 &mdash; Authorization</h3>
+      <p>OAuth2 password flow &middot; FastAPI&rsquo;s security utilities &middot; Role-based access control &middot; Protecting routes by role</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 1 — Authentication vs Authorization
+     ============================================================ -->
+<section class="slide section-divider" id="s3">
+  <div class="section-number">01</div>
+  <h1>Authentication vs Authorization</h1>
+</section>
+
+<!-- ============================================================
+     SLIDE 4 — Definitions
+     ============================================================ -->
+<section class="slide" id="s4">
+  <h1>Authentication vs Authorization</h1>
+
+  <div class="cols mt1">
+    <div class="box box-blue">
+      <h3>Authentication (AuthN)</h3>
+      <p><strong>Who are you?</strong></p>
+      <ul>
+        <li>Verifies the user&rsquo;s <em>identity</em></li>
+        <li>Typically involves a password, token, or biometric</li>
+        <li>Happens <em>before</em> authorization</li>
+        <li>HTTP <code>401 Unauthorized</code> on failure</li>
+      </ul>
+    </div>
+    <div class="box box-green">
+      <h3>Authorization (AuthZ)</h3>
+      <p><strong>What can you do?</strong></p>
+      <ul>
+        <li>Verifies the user&rsquo;s <em>permissions</em></li>
+        <li>Typically involves roles or groups</li>
+        <li>Happens <em>after</em> authentication</li>
+        <li>HTTP <code>403 Forbidden</code> on failure</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box box-orange mt1">
+    <p><strong>Analogy:</strong> Authentication is showing your ID at the airport. Authorization is whether your boarding pass lets you into the first-class lounge.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 2 — Password Hashing
+     ============================================================ -->
+<section class="slide section-divider" id="s5">
+  <div class="section-number">02</div>
+  <h1>Password Hashing</h1>
+</section>
+
+<!-- ============================================================
+     SLIDE 6 — Add password field to model
+     ============================================================ -->
+<section class="slide" id="s6">
+  <h1>Step 1: Add Password to Employee Model</h1>
+  <p>We need to store a hashed password for each employee. Add the column to the ORM model:</p>
+
+<pre><code><span class="cm"># models/employee.py</span>
+
+<span class="kw">class</span> <span class="typ">Employee</span>(<span class="typ">Entity</span>):
+    __tablename__ = <span class="str">"employee"</span>
+
+    name: <span class="typ">Mapped</span>[<span class="typ">str</span>] = <span class="fn">mapped_column</span>(<span class="typ">String</span>(<span class="num">100</span>), nullable=<span class="num">False</span>)
+    email: <span class="typ">Mapped</span>[<span class="typ">str</span>] = <span class="fn">mapped_column</span>(<span class="typ">String</span>(<span class="num">255</span>), nullable=<span class="num">False</span>, unique=<span class="num">True</span>)
+    age: <span class="typ">Mapped</span>[<span class="typ">int</span> | <span class="num">None</span>] = <span class="fn">mapped_column</span>(<span class="typ">Integer</span>, nullable=<span class="num">True</span>)
+<span class="hi">    password_hash: <span class="typ">Mapped</span>[<span class="typ">str</span>] = <span class="fn">mapped_column</span>(<span class="typ">String</span>(<span class="num">255</span>), nullable=<span class="num">False</span>)</span></code></pre>
+
+  <div class="box box-red mt1">
+    <p><strong>Never store plain text passwords.</strong> We store a <em>hash</em> &mdash; the field is called <code>password_hash</code>, not <code>password</code>.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 7 — Migration challenge
+     ============================================================ -->
+<section class="slide" id="s7">
+  <h1>Step 2: The Migration Challenge</h1>
+  <p>Adding a <code>NOT NULL</code> column to a table that already has rows will fail:</p>
+
+<pre><code><span class="typ">ERROR: column "password_hash" of relation "employee" contains null values</span></code></pre>
+
+  <p class="mt1">Solution: <strong>three-step migration</strong></p>
+
+<pre><code><span class="cm"># alembic/versions/c8f05_add_password_and_role_to_employee.py</span>
+
+<span class="kw">def</span> <span class="fn">upgrade</span>() -> <span class="num">None</span>:
+    <span class="cm"># 1. Add column as NULLABLE</span>
+    op.<span class="fn">add_column</span>(<span class="str">"employee"</span>, sa.<span class="fn">Column</span>(<span class="str">"password_hash"</span>, sa.<span class="typ">String</span>(<span class="num">255</span>), nullable=<span class="num">True</span>))
+
+    <span class="cm"># 2. Backfill existing rows with a placeholder</span>
+    op.<span class="fn">execute</span>(<span class="str">"UPDATE employee SET password_hash = 'placeholder' WHERE password_hash IS NULL"</span>)
+
+    <span class="cm"># 3. Make it NOT NULL</span>
+    op.<span class="fn">alter_column</span>(<span class="str">"employee"</span>, <span class="str">"password_hash"</span>, nullable=<span class="num">False</span>)</code></pre>
+
+  <div class="box box-blue mt1">
+    <p><strong>Same pattern works for Node.js also:</strong> nullable &rarr; backfill &rarr; not null. Works in any ORM/migration tool.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 8 — Why not plain text
+     ============================================================ -->
+<section class="slide" id="s8">
+  <h1>Why Hash Passwords?</h1>
+
+  <div class="cols mt1">
+    <div class="box box-red">
+      <h3>Plain Text Storage</h3>
+      <ul>
+        <li>Database breach = all passwords exposed</li>
+        <li>Admins can read user passwords</li>
+        <li>Users reuse passwords across sites &rarr; cascading compromise</li>
+      </ul>
+    </div>
+    <div class="box box-green">
+      <h3>Hashed Storage</h3>
+      <ul>
+        <li>Database breach = useless hash strings</li>
+        <li>One-way function &mdash; cannot reverse</li>
+        <li>Each password has a unique <em>salt</em></li>
+        <li>Computationally expensive to brute-force</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box box-blue mt1">
+    <p><strong>Hashing is one-way:</strong> you can verify <code>hash(input) == stored_hash</code>, but you cannot recover the original password from the hash.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 9 — Bcrypt
+     ============================================================ -->
+<section class="slide" id="s9">
+  <h1>Bcrypt</h1>
+  <p><strong>bcrypt</strong> is a password hashing algorithm designed to be slow (on purpose).</p>
+
+<pre><code><span class="cm"># Install</span>
+uv add bcrypt</code></pre>
+
+<pre><code><span class="cm"># auth/utils.py</span>
+<span class="kw">import</span> bcrypt
+
+<span class="kw">def</span> <span class="fn">hash_password</span>(plain: <span class="typ">str</span>) -> <span class="typ">str</span>:
+    <span class="kw">return</span> bcrypt.<span class="fn">hashpw</span>(plain.<span class="fn">encode</span>(), bcrypt.<span class="fn">gensalt</span>()).<span class="fn">decode</span>()
+
+<span class="kw">def</span> <span class="fn">verify_password</span>(plain: <span class="typ">str</span>, hashed: <span class="typ">str</span>) -> <span class="typ">bool</span>:
+    <span class="kw">return</span> bcrypt.<span class="fn">checkpw</span>(plain.<span class="fn">encode</span>(), hashed.<span class="fn">encode</span>())</code></pre>
+
+  <div class="box box-orange mt1">
+    <p><strong>Salt rounds:</strong> <code>gensalt()</code> generates a random salt with a default cost factor of 12. Higher = slower = more secure, but also more CPU per login. The salt is stored as part of the hash string.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10 — Update create flow
+     ============================================================ -->
+<section class="slide" id="s10">
+  <h1>Step 3: Hash on Create</h1>
+  <p>Update the employee create flow to accept and hash the password:</p>
+
+  <div class="cols mt1">
+    <div>
+      <div class="col-label">employees/schemas.py</div>
+<pre><code><span class="kw">class</span> <span class="typ">EmployeeCreate</span>(<span class="typ">BaseModel</span>):
+    name: <span class="typ">str</span>
+    email: <span class="typ">EmailStr</span>
+    age: <span class="typ">int</span> | <span class="num">None</span> = <span class="num">None</span>
+<span class="hi">    password: <span class="typ">str</span> = <span class="fn">Field</span>(min_length=<span class="num">6</span>)</span></code></pre>
+    </div>
+    <div>
+      <div class="col-label">employees/service.py</div>
+<pre><code><span class="kw">from</span> auth.utils <span class="kw">import</span> hash_password
+
+<span class="kw">def</span> <span class="fn">create</span>(db, body):
+<span class="hi">    hashed = <span class="fn">hash_password</span>(body.password)</span>
+    <span class="kw">return</span> employee_repo.<span class="fn">create</span>(
+        db,
+        body.name,
+        body.email,
+<span class="hi">        password_hash=hashed,</span>
+        age=body.age,
+    )</code></pre>
+    </div>
+  </div>
+
+  <div class="box box-green mt1">
+    <p><strong>Important:</strong> the plain-text password never reaches the database. The service hashes it <em>before</em> calling the repository.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 3 — Login & JWT
+     ============================================================ -->
+<section class="slide section-divider" id="s11">
+  <div class="section-number">03</div>
+  <h1>Login &amp; JWT Tokens</h1>
+</section>
+
+<!-- ============================================================
+     SLIDE 12 — Login endpoint
+     ============================================================ -->
+<section class="slide" id="s12">
+  <h1>Step 4: Login Endpoint</h1>
+  <p>Create a <code>get_by_email</code> repo method and an auth service:</p>
+
+<pre><code><span class="cm"># employees/repo.py</span>
+
+<span class="kw">def</span> <span class="fn">get_by_email</span>(db: <span class="typ">Session</span>, email: <span class="typ">str</span>) -> <span class="typ">Employee</span> | <span class="num">None</span>:
+    stmt = <span class="fn">_employee_stmt</span>().<span class="fn">where</span>(
+        Employee.email == email,
+        Employee.deleted_at.<span class="fn">is_</span>(<span class="num">None</span>),
+    )
+    <span class="kw">return</span> db.<span class="fn">scalars</span>(stmt).<span class="fn">first</span>()</code></pre>
+
+<pre><code><span class="cm"># auth/service.py</span>
+
+<span class="kw">def</span> <span class="fn">login</span>(db: <span class="typ">Session</span>, email: <span class="typ">str</span>, password: <span class="typ">str</span>) -> <span class="typ">str</span>:
+    employee = employee_repo.<span class="fn">get_by_email</span>(db, email)
+    <span class="kw">if</span> employee <span class="kw">is</span> <span class="num">None</span>:
+        <span class="kw">raise</span> <span class="typ">UnauthorizedException</span>(<span class="str">"Invalid email or password"</span>)
+
+    <span class="kw">if not</span> <span class="fn">verify_password</span>(password, employee.password_hash):
+        <span class="kw">raise</span> <span class="typ">UnauthorizedException</span>(<span class="str">"Invalid email or password"</span>)
+
+    <span class="kw">return</span> <span class="fn">create_access_token</span>({<span class="str">"id"</span>: employee.id, <span class="str">"email"</span>: employee.email})</code></pre>
+
+  <div class="box box-orange mt1">
+    <p><strong>Security note:</strong> use the same error message for &ldquo;email not found&rdquo; and &ldquo;wrong password&rdquo; &mdash; don&rsquo;t reveal which one failed.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 13 — What is JWT
+     ============================================================ -->
+<section class="slide" id="s13">
+  <h1>What is JWT?</h1>
+  <p><strong>JSON Web Token</strong> &mdash; a compact, self-contained way to maintain login state between requests.</p>
+
+  <div class="mt1">
+    <div class="box box-blue mb1">
+      <h3>Structure: Header.Payload.Signature</h3>
+      <p><code style="word-break: break-all; color: var(--red);">eyJhbGciOiJIUzI1NiJ9</code>.<code style="word-break: break-all; color: var(--purple);">eyJpZCI6MSwiZW1haWwiOiJhQGIuY29tIn0</code>.<code style="word-break: break-all; color: var(--green);">dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk</code></p>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>Part</th><th>Contains</th><th>Encoded?</th></tr>
+    <tr><td style="color: var(--red);">Header</td><td>Algorithm (<code>HS256</code>) and token type (<code>JWT</code>)</td><td>Base64 (readable)</td></tr>
+    <tr><td style="color: var(--purple);">Payload</td><td>User data: id, email, expiry (<code>exp</code>)</td><td>Base64 (readable)</td></tr>
+    <tr><td style="color: var(--green);">Signature</td><td>HMAC of header + payload using a <em>secret key</em></td><td>Ensures integrity</td></tr>
+  </table>
+
+  <div class="box box-red mt1">
+    <p><strong>JWT is NOT encrypted.</strong> The payload is Base64-encoded &mdash; anyone can decode and read it. Never put sensitive data (passwords, credit cards) in the payload.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 14 — Symmetric vs Asymmetric
+     ============================================================ -->
+<section class="slide" id="s14">
+  <h1>Signing: Symmetric vs Asymmetric</h1>
+
+  <div class="cols mt1">
+    <div class="box box-blue">
+      <h3>Symmetric (HS256)</h3>
+      <p>One shared secret key for signing and verifying.</p>
+      <ul>
+        <li>Simple &mdash; one key to manage</li>
+        <li>Both issuer and verifier need the same secret</li>
+        <li>Good for single-service apps</li>
+      </ul>
+<pre><code>jwt.<span class="fn">encode</span>(payload, <span class="str">SECRET</span>, algorithm=<span class="str">"HS256"</span>)
+jwt.<span class="fn">decode</span>(token, <span class="str">SECRET</span>, algorithms=[<span class="str">"HS256"</span>])</code></pre>
+    </div>
+    <div class="box box-green">
+      <h3>Asymmetric (RS256)</h3>
+      <p>Private key signs, public key verifies.</p>
+      <ul>
+        <li>Verifiers don&rsquo;t need the private key</li>
+        <li>Good for microservices / distributed systems</li>
+        <li>More complex key management</li>
+      </ul>
+<pre><code>jwt.<span class="fn">encode</span>(payload, <span class="str">PRIVATE_KEY</span>, algorithm=<span class="str">"RS256"</span>)
+jwt.<span class="fn">decode</span>(token, <span class="str">PUBLIC_KEY</span>, algorithms=[<span class="str">"RS256"</span>])</code></pre>
+    </div>
+  </div>
+
+  <div class="box box-orange mt1">
+    <p><strong>We will use HS256</strong> (symmetric) for simplicity. In production with multiple services, consider RS256.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15 — JWT in Python
+     ============================================================ -->
+<section class="slide" id="s15">
+  <h1>Step 5: JWT Token Generation</h1>
+
+<pre><code><span class="cm"># Install</span>
+uv add "python-jose[cryptography]"</code></pre>
+
+<pre><code><span class="cm"># auth/utils.py</span>
+<span class="kw">from</span> datetime <span class="kw">import</span> datetime, timedelta, timezone
+<span class="kw">from</span> jose <span class="kw">import</span> JWTError, jwt
+<span class="kw">from</span> config <span class="kw">import</span> settings
+
+<span class="kw">def</span> <span class="fn">create_access_token</span>(data: <span class="typ">dict</span>) -> <span class="typ">str</span>:
+    to_encode = data.<span class="fn">copy</span>()
+    expire = datetime.<span class="fn">now</span>(timezone.utc) + <span class="fn">timedelta</span>(minutes=settings.jwt_expiry_minutes)
+    to_encode[<span class="str">"exp"</span>] = expire
+    <span class="kw">return</span> jwt.<span class="fn">encode</span>(to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+<span class="kw">def</span> <span class="fn">decode_access_token</span>(token: <span class="typ">str</span>) -> <span class="typ">dict</span> | <span class="num">None</span>:
+    <span class="kw">try</span>:
+        <span class="kw">return</span> jwt.<span class="fn">decode</span>(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    <span class="kw">except</span> <span class="typ">JWTError</span>:
+        <span class="kw">return</span> <span class="num">None</span></code></pre>
+
+  <div class="box box-blue mt1">
+    <p><strong>Config:</strong> <code>JWT_SECRET</code>, <code>JWT_ALGORITHM</code>, and <code>JWT_EXPIRY_MINUTES</code> are loaded from environment variables via Pydantic Settings &mdash; never hardcode secrets.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 16 — Auth router
+     ============================================================ -->
+<section class="slide" id="s16">
+  <h1>Step 6: Auth Router</h1>
+
+<pre><code><span class="cm"># auth/router.py</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Depends
+<span class="kw">from</span> sqlalchemy.orm <span class="kw">import</span> Session
+
+<span class="kw">from</span> auth <span class="kw">import</span> service <span class="kw">as</span> auth_service
+<span class="kw">from</span> auth.schemas <span class="kw">import</span> LoginRequest, TokenResponse
+<span class="kw">from</span> database <span class="kw">import</span> get_db
+
+router = <span class="typ">APIRouter</span>(prefix=<span class="str">"/auth"</span>, tags=[<span class="str">"Auth"</span>])
+
+<span class="dec">@router.post</span>(<span class="str">"/login"</span>, response_model=<span class="typ">TokenResponse</span>)
+<span class="kw">def</span> <span class="fn">login</span>(body: <span class="typ">LoginRequest</span>, db: <span class="typ">Session</span> = <span class="fn">Depends</span>(get_db)):
+    token = auth_service.<span class="fn">login</span>(db, body.email, body.password)
+    <span class="kw">return</span> <span class="typ">TokenResponse</span>(access_token=token)</code></pre>
+
+<pre><code><span class="cm"># auth/schemas.py</span>
+<span class="kw">class</span> <span class="typ">TokenResponse</span>(<span class="typ">BaseModel</span>):
+    access_token: <span class="typ">str</span>
+    token_type: <span class="typ">str</span> = <span class="str">"bearer"</span></code></pre>
+
+  <p class="mt1">Wire it in <code>main.py</code>:</p>
+
+<pre><code><span class="kw">from</span> auth.router <span class="kw">import</span> router <span class="kw">as</span> auth_router
+
+app.<span class="fn">include_router</span>(auth_router)</code></pre>
+</section>
+
+<!-- ============================================================
+     SLIDE 17 — Token in Authorization header
+     ============================================================ -->
+<section class="slide" id="s17">
+  <h1>Sending the Token</h1>
+  <p>The client sends the JWT in the <code>Authorization</code> header on every subsequent request:</p>
+
+<pre><code><span class="cm">POST /auth/login</span>
+{ <span class="str">"email"</span>: <span class="str">"alice@example.com"</span>, <span class="str">"password"</span>: <span class="str">"secret123"</span> }
+
+<span class="cm">Response:</span>
+{ <span class="str">"access_token"</span>: <span class="str">"eyJhbGci..."</span>, <span class="str">"token_type"</span>: <span class="str">"bearer"</span> }
+
+<span class="cm">--- All subsequent requests ---</span>
+
+<span class="hi">Authorization: Bearer eyJhbGci...</span>
+
+<span class="cm">GET /employees</span></code></pre>
+
+  <div class="box box-blue mt1">
+    <p><strong>Bearer</strong> is the token type as per <a href="https://tools.ietf.org/html/rfc6750" style="color: var(--accent);">RFC 6750</a>. It tells the server &ldquo;the thing after <code>Bearer </code> is the token.&rdquo;</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 18 — Auth middleware as dependency
+     ============================================================ -->
+<section class="slide" id="s18">
+  <h1>Step 7: Auth Middleware (FastAPI Dependency)</h1>
+  <p>In FastAPI, we use <strong>dependencies</strong> instead of Express-style middleware:</p>
+
+<pre><code><span class="cm"># auth/dependencies.py</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> Depends
+<span class="kw">from</span> fastapi.security <span class="kw">import</span> OAuth2PasswordBearer
+
+<span class="kw">from</span> auth.schemas <span class="kw">import</span> TokenPayload
+<span class="kw">from</span> auth.utils <span class="kw">import</span> decode_access_token
+<span class="kw">from</span> exceptions <span class="kw">import</span> UnauthorizedException
+
+oauth2_scheme = <span class="typ">OAuth2PasswordBearer</span>(tokenUrl=<span class="str">"/auth/login"</span>)
+
+<span class="kw">def</span> <span class="fn">get_current_user</span>(token: <span class="typ">str</span> = <span class="fn">Depends</span>(oauth2_scheme)) -> <span class="typ">TokenPayload</span>:
+    payload = <span class="fn">decode_access_token</span>(token)
+    <span class="kw">if</span> payload <span class="kw">is</span> <span class="num">None</span>:
+        <span class="kw">raise</span> <span class="typ">UnauthorizedException</span>(<span class="str">"Invalid or expired token"</span>)
+    <span class="kw">return</span> <span class="typ">TokenPayload</span>(**payload)</code></pre>
+
+  <div class="box box-green mt1">
+    <p><strong>How it works:</strong> <code>OAuth2PasswordBearer</code> extracts the token from the <code>Authorization: Bearer ...</code> header. The <code>get_current_user</code> dependency decodes and validates it.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 19 — Applying to routes
+     ============================================================ -->
+<section class="slide" id="s19">
+  <h1>Step 8: Protecting Routes</h1>
+  <p>Add <code>get_current_user</code> as a dependency to routes that need authentication:</p>
+
+<pre><code><span class="cm"># employees/router.py</span>
+<span class="kw">from</span> auth.dependencies <span class="kw">import</span> get_current_user
+<span class="kw">from</span> auth.schemas <span class="kw">import</span> TokenPayload
+
+<span class="dec">@router.get</span>(<span class="str">""</span>)
+<span class="kw">def</span> <span class="fn">get_all_employees</span>(
+    pagination: <span class="typ">dict</span> = <span class="fn">Depends</span>(pagination_params),
+    db: <span class="typ">Session</span> = <span class="fn">Depends</span>(get_db),
+<span class="hi">    _current_user: <span class="typ">TokenPayload</span> = <span class="fn">Depends</span>(get_current_user),</span>
+):
+    <span class="kw">return</span> employee_service.<span class="fn">get_all</span>(db, ...)</code></pre>
+
+  <div class="box box-blue mt1">
+    <p><strong>Key difference from Express:</strong> In Express, middleware is applied to the router and affects all routes. In FastAPI, each route explicitly declares its dependencies &mdash; more granular, more visible.</p>
+  </div>
+
+  <div class="box box-orange mt1">
+    <p><strong>Note:</strong> the login endpoint (<code>/auth/login</code>) stays unprotected &mdash; users need to be able to log in without a token!</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 20 — New exception classes
+     ============================================================ -->
+<section class="slide" id="s20">
+  <h1>New Exception Classes</h1>
+  <p>We extend our exception hierarchy with auth-specific errors:</p>
+
+<pre><code><span class="cm"># exceptions/__init__.py</span>
+
+<span class="kw">class</span> <span class="typ">UnauthorizedException</span>(<span class="typ">AppException</span>):
+    <span class="str">"""Authentication required or credentials invalid."""</span>
+
+<span class="kw">class</span> <span class="typ">ForbiddenException</span>(<span class="typ">AppException</span>):
+    <span class="str">"""Authenticated but not allowed to access this resource."""</span></code></pre>
+
+<pre><code><span class="cm"># exceptions/handlers.py — add to STATUS_MAP</span>
+
+_STATUS_MAP = {
+    NotFoundException:   <span class="num">404</span>,
+    ConflictException:   <span class="num">409</span>,
+    BadRequestException: <span class="num">400</span>,
+<span class="hi">    UnauthorizedException: <span class="num">401</span>,</span>
+<span class="hi">    ForbiddenException:    <span class="num">403</span>,</span>
+}</code></pre>
+
+  <div class="box box-green mt1">
+    <p><strong>Same pattern as before:</strong> domain exceptions &rarr; global handler &rarr; HTTP status codes. No <code>HTTPException</code> in business logic.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 21 — Full auth flow diagram
+     ============================================================ -->
+<section class="slide" id="s21">
+  <h1>The Full Authentication Flow</h1>
+
+  <div class="mt1">
+    <div class="box box-blue mb1">
+      <p><strong>1. Register</strong> &rarr; <code>POST /employees</code> with <code>password</code> field &rarr; service hashes with bcrypt &rarr; stores <code>password_hash</code></p>
+    </div>
+    <div class="box box-green mb1">
+      <p><strong>2. Login</strong> &rarr; <code>POST /auth/login</code> &rarr; verify email exists &rarr; bcrypt compare &rarr; return JWT token</p>
+    </div>
+    <div class="box box-orange mb1">
+      <p><strong>3. Authenticated request</strong> &rarr; <code>GET /employees</code> with <code>Authorization: Bearer &lt;token&gt;</code></p>
+    </div>
+    <div class="box box-purple mb1">
+      <p><strong>4. Dependency chain</strong> &rarr; <code>OAuth2PasswordBearer</code> extracts token &rarr; <code>get_current_user</code> decodes JWT &rarr; route receives <code>TokenPayload</code></p>
+    </div>
+    <div class="box box-red">
+      <p><strong>5. Failure</strong> &rarr; missing/invalid/expired token &rarr; <code>UnauthorizedException</code> &rarr; global handler &rarr; <code>401</code></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 22 — Session 1 Recap
+     ============================================================ -->
+<section class="slide" id="s22">
+  <h1>Session 1 Recap</h1>
+
+  <div class="mt1">
+    <div class="box box-blue">
+      <h3>1. Authentication vs Authorization</h3>
+      <p>AuthN = who are you (401). AuthZ = what can you do (403).</p>
+    </div>
+    <div class="box box-green">
+      <h3>2. Password Hashing</h3>
+      <p>Never store plain text. Use bcrypt. Hash on create, verify on login.</p>
+    </div>
+    <div class="box box-orange">
+      <h3>3. JWT Tokens</h3>
+      <p>Header.Payload.Signature. Base64 encoded (not encrypted). Contains user identity + expiry.</p>
+    </div>
+    <div class="box box-purple">
+      <h3>4. FastAPI Dependencies</h3>
+      <p><code>OAuth2PasswordBearer</code> extracts token. <code>get_current_user</code> decodes + validates. Add as <code>Depends()</code> on routes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     BREAK SLIDE
+     ============================================================ -->
+<section class="slide break-slide" id="s23">
+  <h1>Break</h1>
+  <p>Back in 10 minutes</p>
+</section>
+
+<!-- ============================================================
+     SECTION 4 — OAuth2 Password Flow
+     ============================================================ -->
+<section class="slide section-divider" id="s24">
+  <div class="section-number">04</div>
+  <h1>OAuth2 Password Flow</h1>
+</section>
+
+<!-- ============================================================
+     SLIDE 25 — What is OAuth2
+     ============================================================ -->
+<section class="slide" id="s25">
+  <h1>What is OAuth2?</h1>
+  <p>OAuth2 is a standard <em>authorization framework</em> with multiple &ldquo;flows&rdquo; (grant types). We use the <strong>Resource Owner Password Credentials</strong> flow:</p>
+
+  <table class="mt1">
+    <tr><th>Flow</th><th>Use Case</th></tr>
+    <tr><td><strong>Password</strong> (what we use)</td><td>User gives username + password directly to your app</td></tr>
+    <tr><td>Authorization Code</td><td>Third-party login (Google, GitHub) &mdash; redirects to provider</td></tr>
+    <tr><td>Client Credentials</td><td>Machine-to-machine (no user involved)</td></tr>
+    <tr><td>Implicit (deprecated)</td><td>Was used for SPAs, replaced by Auth Code + PKCE</td></tr>
+  </table>
+
+  <div class="box box-blue mt1">
+    <p><strong>Password flow</strong> is the simplest &mdash; the client sends <code>username</code> and <code>password</code> as <strong>form data</strong> (not JSON), and gets back an access token.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 26 — FastAPI OAuth2 utilities
+     ============================================================ -->
+<section class="slide" id="s26">
+  <h1>FastAPI&rsquo;s OAuth2 Utilities</h1>
+  <p>FastAPI provides two classes that implement the password flow out of the box:</p>
+
+  <div class="cols mt1">
+    <div class="box box-blue">
+      <h3>OAuth2PasswordRequestForm</h3>
+      <p>Parses login form data: <code>username</code>, <code>password</code>, optional <code>scope</code>.</p>
+<pre><code><span class="kw">from</span> fastapi.security <span class="kw">import</span> (
+    OAuth2PasswordRequestForm,
+)
+
+<span class="dec">@router.post</span>(<span class="str">"/login"</span>)
+<span class="kw">def</span> <span class="fn">login</span>(
+    form: <span class="typ">OAuth2PasswordRequestForm</span>
+        = <span class="fn">Depends</span>(),
+):
+    <span class="cm"># form.username = email</span>
+    <span class="cm"># form.password = password</span></code></pre>
+    </div>
+    <div class="box box-green">
+      <h3>OAuth2PasswordBearer</h3>
+      <p>Extracts Bearer token from <code>Authorization</code> header.</p>
+<pre><code><span class="kw">from</span> fastapi.security <span class="kw">import</span> (
+    OAuth2PasswordBearer,
+)
+
+oauth2_scheme = <span class="typ">OAuth2PasswordBearer</span>(
+    tokenUrl=<span class="str">"/auth/login"</span>
+)
+
+<span class="cm"># Used as a dependency:</span>
+token: <span class="typ">str</span> = <span class="fn">Depends</span>(oauth2_scheme)</code></pre>
+    </div>
+  </div>
+
+  <div class="box box-orange mt1">
+    <p><strong>Bonus:</strong> setting <code>tokenUrl</code> enables the &ldquo;Authorize&rdquo; button in Swagger UI &mdash; you can test login directly from <code>/docs</code>!</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 27 — Refactor login to OAuth2
+     ============================================================ -->
+<section class="slide" id="s27">
+  <h1>Refactoring Login to OAuth2</h1>
+  <p>Replace our JSON body with the standard OAuth2 form:</p>
+
+  <div class="cols mt1">
+    <div>
+      <div class="col-label" style="color: var(--red);">Before (JSON body)</div>
+<pre><code><span class="dec">@router.post</span>(<span class="str">"/login"</span>)
+<span class="kw">def</span> <span class="fn">login</span>(
+    body: <span class="typ">LoginRequest</span>,
+    db: <span class="typ">Session</span> = <span class="fn">Depends</span>(get_db),
+):
+    token = auth_service.<span class="fn">login</span>(
+        db, body.email, body.password
+    )</code></pre>
+    </div>
+    <div>
+      <div class="col-label" style="color: var(--green);">After (OAuth2 form)</div>
+<pre><code><span class="dec">@router.post</span>(<span class="str">"/login"</span>)
+<span class="kw">def</span> <span class="fn">login</span>(
+    form: <span class="typ">OAuth2PasswordRequestForm</span>
+        = <span class="fn">Depends</span>(),
+    db: <span class="typ">Session</span> = <span class="fn">Depends</span>(get_db),
+):
+    token = auth_service.<span class="fn">login</span>(
+        db, form.username, form.password
+    )</code></pre>
+    </div>
+  </div>
+
+  <div class="box box-blue mt1">
+    <p><strong>Why <code>form.username</code> not <code>form.email</code>?</strong> The OAuth2 spec defines the field as <code>username</code>. We pass the email as the username &mdash; common convention.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 28 — Swagger Authorize
+     ============================================================ -->
+<section class="slide" id="s28">
+  <h1>Swagger UI Integration</h1>
+  <p>With <code>tokenUrl</code> set, Swagger UI shows a lock icon and an &ldquo;Authorize&rdquo; dialog:</p>
+
+  <div class="box box-green mt1">
+    <h3>How to test from /docs:</h3>
+    <ol>
+      <li>Click the <strong>Authorize</strong> button (top right)</li>
+      <li>Enter email as <strong>username</strong>, password as <strong>password</strong></li>
+      <li>Click <strong>Authorize</strong></li>
+      <li>All subsequent &ldquo;Try it out&rdquo; requests automatically include the Bearer token</li>
+    </ol>
+  </div>
+
+  <div class="box box-blue mt1">
+    <p><strong>No more copy-pasting tokens!</strong> This is one of the biggest benefits of following the OAuth2 spec &mdash; tooling support.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 5 — RBAC
+     ============================================================ -->
+<section class="slide section-divider" id="s29">
+  <div class="section-number">05</div>
+  <h1>Role-Based Access Control</h1>
+</section>
+
+<!-- ============================================================
+     SLIDE 30 — What is RBAC
+     ============================================================ -->
+<section class="slide" id="s30">
+  <h1>What is RBAC?</h1>
+  <p><strong>Role-Based Access Control</strong> &mdash; permissions are assigned to roles, users are assigned to roles.</p>
+
+  <table class="mt1">
+    <tr><th>Role</th><th>Can Read</th><th>Can Create</th><th>Can Update</th><th>Can Delete</th></tr>
+    <tr><td>Developer</td><td style="color: var(--green);">Yes</td><td style="color: var(--red);">No</td><td style="color: var(--red);">No</td><td style="color: var(--red);">No</td></tr>
+    <tr><td>UI / UX</td><td style="color: var(--green);">Yes</td><td style="color: var(--red);">No</td><td style="color: var(--red);">No</td><td style="color: var(--red);">No</td></tr>
+    <tr><td>HR</td><td style="color: var(--green);">Yes</td><td style="color: var(--green);">Yes</td><td style="color: var(--green);">Yes</td><td style="color: var(--green);">Yes</td></tr>
+  </table>
+
+  <div class="box box-blue mt1">
+    <p><strong>RBAC simplifies authorization:</strong> instead of checking individual permissions, you check the user&rsquo;s role. New user? Assign a role. Done.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 31 — Add Role to model
+     ============================================================ -->
+<section class="slide" id="s31">
+  <h1>Step 1: Add Role to Employee</h1>
+  <p>Define a Python enum and add it as a column:</p>
+
+<pre><code><span class="cm"># models/employee.py</span>
+<span class="kw">import</span> enum
+<span class="kw">from</span> sqlalchemy <span class="kw">import</span> Enum
+
+<span class="kw">class</span> <span class="typ">EmployeeRole</span>(<span class="typ">str</span>, enum.<span class="typ">Enum</span>):
+    UI = <span class="str">"UI"</span>
+    UX = <span class="str">"UX"</span>
+    DEVELOPER = <span class="str">"Developer"</span>
+    HR = <span class="str">"HR"</span>
+
+<span class="kw">class</span> <span class="typ">Employee</span>(<span class="typ">Entity</span>):
+    <span class="cm"># ... existing fields ...</span>
+<span class="hi">    role: <span class="typ">Mapped</span>[<span class="typ">EmployeeRole</span>] = <span class="fn">mapped_column</span>(</span>
+<span class="hi">        <span class="typ">Enum</span>(<span class="typ">EmployeeRole</span>, name=<span class="str">"employeerole"</span>),</span>
+<span class="hi">        nullable=<span class="num">False</span>,</span>
+<span class="hi">        server_default=EmployeeRole.DEVELOPER.value,</span>
+<span class="hi">    )</span></code></pre>
+
+  <div class="box box-blue mt1">
+    <p><strong><code>str, Enum</code>:</strong> inheriting from <code>str</code> makes the enum JSON-serializable and comparable with strings. <code>server_default</code> sets the default in the database for existing rows.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 32 — Role migration
+     ============================================================ -->
+<section class="slide" id="s32">
+  <h1>Step 2: Migration for Role</h1>
+
+<pre><code><span class="cm"># In the same migration file</span>
+
+_ROLE_ENUM = sa.<span class="typ">Enum</span>(<span class="str">"UI"</span>, <span class="str">"UX"</span>, <span class="str">"Developer"</span>, <span class="str">"HR"</span>, name=<span class="str">"employeerole"</span>)
+
+<span class="kw">def</span> <span class="fn">upgrade</span>() -> <span class="num">None</span>:
+    <span class="cm"># ... password_hash steps ...</span>
+
+    <span class="cm"># Create the PostgreSQL enum type first</span>
+<span class="hi">    _ROLE_ENUM.<span class="fn">create</span>(op.<span class="fn">get_bind</span>(), checkfirst=<span class="num">True</span>)</span>
+
+    <span class="cm"># Add column with server_default for existing rows</span>
+<span class="hi">    op.<span class="fn">add_column</span>(</span>
+<span class="hi">        <span class="str">"employee"</span>,</span>
+<span class="hi">        sa.<span class="fn">Column</span>(<span class="str">"role"</span>, _ROLE_ENUM, nullable=<span class="num">False</span>, server_default=<span class="str">"Developer"</span>),</span>
+<span class="hi">    )</span></code></pre>
+
+  <div class="box box-orange mt1">
+    <p><strong>PostgreSQL enum:</strong> unlike SQLite, PostgreSQL has native enum types. The migration creates the type first, then uses it in the column. <code>checkfirst=True</code> avoids errors if the type already exists.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 33 — Include role in JWT
+     ============================================================ -->
+<section class="slide" id="s33">
+  <h1>Step 3: Include Role in JWT</h1>
+  <p>Add the role to the token payload so we can authorize without hitting the database:</p>
+
+<pre><code><span class="cm"># auth/service.py</span>
+
+<span class="kw">def</span> <span class="fn">login</span>(db, email, password):
+    <span class="cm"># ... verify credentials ...</span>
+
+    token = <span class="fn">create_access_token</span>({
+        <span class="str">"id"</span>: employee.id,
+        <span class="str">"email"</span>: employee.email,
+<span class="hi">        <span class="str">"role"</span>: employee.role.value,</span>
+    })
+    <span class="kw">return</span> token</code></pre>
+
+<pre><code><span class="cm"># auth/schemas.py</span>
+
+<span class="kw">class</span> <span class="typ">TokenPayload</span>(<span class="typ">BaseModel</span>):
+    id: <span class="typ">int</span>
+    email: <span class="typ">str</span>
+<span class="hi">    role: <span class="typ">EmployeeRole</span></span></code></pre>
+
+  <div class="box box-green mt1">
+    <p><strong>Why include role in JWT?</strong> Authorization checks happen on every request. Fetching the user from the database each time adds latency. The JWT already contains the role.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 34 — Authorization dependency
+     ============================================================ -->
+<section class="slide" id="s34">
+  <h1>Step 4: Role-Based Dependency</h1>
+  <p>Create a dependency factory that checks the current user&rsquo;s role:</p>
+
+<pre><code><span class="cm"># auth/dependencies.py</span>
+
+<span class="kw">def</span> <span class="fn">require_role</span>(*roles: <span class="typ">EmployeeRole</span>):
+    <span class="str">"""Return a dependency that checks the user has one of the given roles."""</span>
+
+    <span class="kw">def</span> <span class="fn">role_checker</span>(
+        current_user: <span class="typ">TokenPayload</span> = <span class="fn">Depends</span>(get_current_user),
+    ) -> <span class="typ">TokenPayload</span>:
+        <span class="kw">if</span> current_user.role <span class="kw">not in</span> roles:
+            <span class="kw">raise</span> <span class="typ">ForbiddenException</span>(
+                <span class="str">"You do not have permission to perform this action"</span>
+            )
+        <span class="kw">return</span> current_user
+
+    <span class="kw">return</span> role_checker</code></pre>
+
+  <div class="box box-blue mt1">
+    <p><strong>Dependency factory pattern:</strong> <code>require_role(EmployeeRole.HR)</code> returns a new dependency function with the allowed roles baked in. This is the FastAPI equivalent of Express&rsquo;s <code>checkRole(role)</code> middleware.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 35 — Applying RBAC to routes
+     ============================================================ -->
+<section class="slide" id="s35">
+  <h1>Step 5: Protecting Routes by Role</h1>
+  <p>Use <code>dependencies=[Depends(require_role(...))]</code> on routes that need authorization:</p>
+
+<pre><code><span class="cm"># employees/router.py</span>
+
+<span class="dec">@router.post</span>(
+    <span class="str">""</span>,
+    status_code=status.HTTP_201_CREATED,
+<span class="hi">    dependencies=[<span class="fn">Depends</span>(<span class="fn">require_role</span>(EmployeeRole.HR))],</span>
+)
+<span class="kw">def</span> <span class="fn">create_employee</span>(body, db):
+    ...
+
+<span class="dec">@router.put</span>(
+    <span class="str">"/{employee_id}"</span>,
+<span class="hi">    dependencies=[<span class="fn">Depends</span>(<span class="fn">require_role</span>(EmployeeRole.HR))],</span>
+)
+<span class="kw">def</span> <span class="fn">update_employee</span>(employee_id, body, db):
+    ...
+
+<span class="dec">@router.delete</span>(
+    <span class="str">"/{employee_id}"</span>,
+<span class="hi">    dependencies=[<span class="fn">Depends</span>(<span class="fn">require_role</span>(EmployeeRole.HR))],</span>
+)
+<span class="kw">def</span> <span class="fn">delete_employee</span>(employee_id, db):
+    ...</code></pre>
+
+  <div class="box box-orange mt1">
+    <p><strong>Read routes</strong> (GET) require authentication only (<code>get_current_user</code>). <strong>Write routes</strong> (POST, PUT, DELETE) require HR role.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 36 — Multiple roles
+     ============================================================ -->
+<section class="slide" id="s36">
+  <h1>Supporting Multiple Roles</h1>
+  <p>Because <code>require_role</code> accepts <code>*roles</code>, you can pass multiple allowed roles:</p>
+
+<pre><code><span class="cm"># Only HR can create employees</span>
+dependencies=[<span class="fn">Depends</span>(<span class="fn">require_role</span>(EmployeeRole.HR))]
+
+<span class="cm"># HR and Developers can update</span>
+dependencies=[<span class="fn">Depends</span>(<span class="fn">require_role</span>(EmployeeRole.HR, EmployeeRole.DEVELOPER))]</code></pre>
+
+  <div class="box box-green mt1">
+    <p><strong>This is the exercise from the Node.js session</strong> &mdash; but in Python, <code>*roles</code> (variadic args) gives us this for free. No separate &ldquo;single role&rdquo; and &ldquo;multi-role&rdquo; versions needed.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 37 — Auth flow summary
+     ============================================================ -->
+<section class="slide" id="s37">
+  <h1>The Complete Auth Flow</h1>
+
+  <div class="mt1">
+    <div class="box box-blue mb1">
+      <p><strong>1. POST /employees</strong> (HR creates a user with password + role)</p>
+    </div>
+    <div class="box box-green mb1">
+      <p><strong>2. POST /auth/login</strong> (username=email, password via OAuth2 form &rarr; JWT with id, email, role)</p>
+    </div>
+    <div class="box box-orange mb1">
+      <p><strong>3. GET /employees</strong> + Bearer token &rarr; <code>OAuth2PasswordBearer</code> extracts token &rarr; <code>get_current_user</code> decodes &rarr; route runs</p>
+    </div>
+    <div class="box box-purple mb1">
+      <p><strong>4. POST /employees</strong> + Bearer token &rarr; <code>require_role(HR)</code> checks role in JWT &rarr; <span style="color: var(--green);">HR: allowed</span> / <span style="color: var(--red);">Developer: 403</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION 6 — Recap & Best Practices
+     ============================================================ -->
+<section class="slide section-divider" id="s38">
+  <div class="section-number">06</div>
+  <h1>Recap &amp; Best Practices</h1>
+</section>
+
+<!-- ============================================================
+     SLIDE 39 — Best Practices
+     ============================================================ -->
+<section class="slide" id="s39">
+  <h1>Best Practices</h1>
+
+  <div class="cols mt1">
+    <div>
+      <h3 style="color: var(--green);">Do</h3>
+      <ul>
+        <li>Always hash passwords (bcrypt, argon2)</li>
+        <li>Use environment variables for JWT secrets</li>
+        <li>Set token expiry (1h is a good default)</li>
+        <li>Return the same error for &ldquo;email not found&rdquo; and &ldquo;wrong password&rdquo;</li>
+        <li>Include only necessary data in JWT payload</li>
+        <li>Use <code>Depends()</code> for auth &mdash; explicit and testable</li>
+        <li>Separate authentication from authorization</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color: var(--red);">Don&rsquo;t</h3>
+      <ul>
+        <li>Store passwords in plain text</li>
+        <li>Put sensitive data in JWT (it&rsquo;s Base64, not encrypted)</li>
+        <li>Hardcode secrets in source code</li>
+        <li>Use short/weak JWT secrets in production</li>
+        <li>Reveal whether email or password was wrong</li>
+        <li>Skip token expiry (&ldquo;never expires&rdquo;)</li>
+        <li>Check roles in business logic — use middleware</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 40 — Key Takeaways
+     ============================================================ -->
+<section class="slide" id="s40">
+  <h1>Key Takeaways</h1>
+
+  <div class="mt1">
+    <div class="box box-blue">
+      <h3>1. Password Hashing</h3>
+      <p>bcrypt. Hash on create, verify on login. Never store or log plain passwords.</p>
+    </div>
+    <div class="box box-green">
+      <h3>2. JWT Tokens</h3>
+      <p>Stateless authentication. Header.Payload.Signature. Signed (not encrypted). Include user identity + role + expiry.</p>
+    </div>
+    <div class="box box-orange">
+      <h3>3. OAuth2 Password Flow</h3>
+      <p>Standard form-based login. FastAPI provides <code>OAuth2PasswordBearer</code> + <code>OAuth2PasswordRequestForm</code>. Enables Swagger UI &ldquo;Authorize&rdquo; button.</p>
+    </div>
+    <div class="box box-purple">
+      <h3>4. Role-Based Access Control</h3>
+      <p>Roles stored in DB + JWT. <code>require_role(*roles)</code> dependency factory. HR can write, others can only read.</p>
+    </div>
+    <div class="box box-red">
+      <h3>5. FastAPI Pattern</h3>
+      <p>Dependencies > middleware. Domain exceptions > HTTPException. Same clean separation as before.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 41 — Exercises
+     ============================================================ -->
+<section class="slide" id="s41">
+  <h1>Exercises</h1>
+  <div class="mt1">
+    <div class="box box-blue">
+      <h3>Exercise 1: Refresh Tokens</h3>
+      <p>Add a <code>POST /auth/refresh</code> endpoint that accepts a valid token and returns a new token with a fresh expiry. Think about: should the old token be invalidated?</p>
+    </div>
+    <div class="box box-green">
+      <h3>Exercise 2: Password Update</h3>
+      <p>Add a <code>PUT /auth/password</code> endpoint. Require the current password + new password. Only allow users to change their own password.</p>
+    </div>
+    <div class="box box-orange">
+      <h3>Exercise 3: Department-Level Authorization</h3>
+      <p>Modify the authorization so that HR can only manage employees in their own department. You will need to query the database in the dependency.</p>
+    </div>
+    <div class="box box-purple">
+      <h3>Exercise 4: Protect Department Routes</h3>
+      <p>Apply the same authentication and role-based authorization to department CRUD routes (create/update/delete = HR only).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 42 — Resources
+     ============================================================ -->
+<section class="slide" id="s42">
+  <h1>Resources</h1>
+  <div class="mt1">
+    <div class="box box-blue">
+      <h3>Official Documentation</h3>
+      <ul>
+        <li>FastAPI Security: <code>https://fastapi.tiangolo.com/tutorial/security/</code></li>
+        <li>OAuth2 with Password: <code>https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/</code></li>
+        <li>bcrypt (PyPI): <code>https://pypi.org/project/bcrypt/</code></li>
+        <li>python-jose: <code>https://python-jose.readthedocs.io/</code></li>
+      </ul>
+    </div>
+    <div class="box box-green">
+      <h3>This Codebase</h3>
+      <ul>
+        <li>Password hashing + JWT: <code>auth/utils.py</code></li>
+        <li>Auth dependencies: <code>auth/dependencies.py</code></li>
+        <li>Auth service: <code>auth/service.py</code></li>
+        <li>Auth router: <code>auth/router.py</code></li>
+        <li>Role enum: <code>models/employee.py</code></li>
+        <li>Protected routes: <code>employees/router.py</code></li>
+        <li>Exception mapping: <code>exceptions/handlers.py</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ── Navigation bar ──────────────────────────────── -->
+<div class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)">&larr; Previous</button>
+  <span id="progress">1 / 42</span>
+  <button id="nextBtn" onclick="changeSlide(1)">Next &rarr;</button>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+
+  function showSlide(n) {
+    slides.forEach(s => s.classList.remove('active'));
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('progress').textContent = `${current + 1} / ${total}`;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total - 1;
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+    if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+    if (e.key === 'End') { e.preventDefault(); showSlide(total - 1); }
+  });
+
+  showSlide(0);
+</script>
+</body>
+</html>

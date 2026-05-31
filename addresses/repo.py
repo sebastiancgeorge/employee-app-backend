@@ -15,7 +15,7 @@ async def create(db: AsyncSession, line1: str, city: str, postal_code: str, coun
         await db.rollback()
         raise ConflictException("Address could not be created due to database conflict")
     await db.refresh(address)
-    return address.to_api_dict()
+    return address
 
 async def get_all_addresses(db: AsyncSession):
     stmt = select(Address).where(Address.deleted_at.is_(None))

@@ -11,6 +11,7 @@ from models.entity import Entity
 
 if TYPE_CHECKING:
     from models.address import Address 
+    from models.department import Department, employee_departments
 
 class Employee(Entity):
     __tablename__ = "employees"
@@ -22,3 +23,4 @@ class Employee(Entity):
     password_hash: Mapped[str] = mapped_column(String(255),nullable= False)
 
     addresses: Mapped[list["Address"]] = relationship("Address", back_populates= "employees")
+    departments: Mapped[list["Department"]] = relationship("Department", secondary= "employee_departments", back_populates="employees")
