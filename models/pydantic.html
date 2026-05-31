@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pydantic for FastAPI — Freshers Training</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --purple: #a78bfa;
+    --code-bg: #0d1117;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* ── Slide system ────────────────────────────────── */
+  .slide {
+    display: none;
+    min-height: 100vh;
+    padding: 3rem 4rem;
+    animation: fadeIn .3s ease;
+  }
+  .slide.active { display: flex; flex-direction: column; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Navigation ──────────────────────────────────── */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .75rem 2rem;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    font-size: .9rem;
+  }
+  .nav button {
+    background: var(--accent); color: var(--bg);
+    border: none; padding: .5rem 1.5rem; border-radius: .375rem;
+    cursor: pointer; font-weight: 600; font-size: .9rem;
+    transition: opacity .2s;
+  }
+  .nav button:hover { opacity: .85; }
+  .nav button:disabled { opacity: .3; cursor: default; }
+  #progress { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* ── Typography ──────────────────────────────────── */
+  h1 { font-size: 2.5rem; margin-bottom: 1rem; color: var(--accent); }
+  h2 { font-size: 1.8rem; margin-bottom: .75rem; color: var(--accent); }
+  h3 { font-size: 1.3rem; margin-bottom: .5rem; color: var(--green); }
+  p, li { font-size: 1.1rem; margin-bottom: .5rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+  li { margin-bottom: .4rem; }
+  .subtitle { color: var(--muted); font-size: 1.25rem; margin-bottom: 2rem; }
+  .tag {
+    display: inline-block; padding: .15rem .6rem; border-radius: .25rem;
+    font-size: .8rem; font-weight: 600; margin-right: .5rem;
+  }
+  .tag-blue  { background: #1e3a5f; color: var(--accent); }
+  .tag-green { background: #14532d; color: var(--green); }
+  .tag-red   { background: #7f1d1d; color: var(--red); }
+
+  /* ── Code blocks ─────────────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: .5rem;
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    font-size: .95rem;
+    line-height: 1.55;
+    margin: .75rem 0 1.25rem;
+  }
+  code {
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: .92em;
+  }
+  :not(pre) > code {
+    background: var(--code-bg);
+    padding: .15rem .4rem;
+    border-radius: .25rem;
+    border: 1px solid var(--border);
+  }
+
+  .kw  { color: #c678dd; }
+  .fn  { color: #61afef; }
+  .str { color: #98c379; }
+  .cm  { color: #5c6370; font-style: italic; }
+  .num { color: #d19a66; }
+  .op  { color: #56b6c2; }
+  .dec { color: #e5c07b; }
+  .typ { color: #e06c75; }
+  .hi  { background: rgba(56,189,248,.12); display: block; margin: 0 -1.5rem; padding: 0 1.5rem; }
+
+  /* ── Layout helpers ──────────────────────────────── */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 1rem 0; }
+  .col-label { font-weight: 700; margin-bottom: .5rem; font-size: 1rem; }
+  .box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: .5rem;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .box-red    { border-left: 4px solid var(--red); }
+  .box-green  { border-left: 4px solid var(--green); }
+  .box-orange { border-left: 4px solid var(--orange); }
+  .box-blue   { border-left: 4px solid var(--accent); }
+
+  .center { text-align: center; }
+  .mt1 { margin-top: 1rem; }
+  .mt2 { margin-top: 2rem; }
+  .mb1 { margin-bottom: 1rem; }
+  .flex-grow { flex: 1; }
+  .gap1 { gap: 1rem; }
+
+  table {
+    width: 100%; border-collapse: collapse; margin: 1rem 0;
+    font-size: 1rem;
+  }
+  th, td { padding: .6rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--accent); font-weight: 600; background: var(--surface); }
+
+  .title-slide {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .title-slide h1 { font-size: 3.5rem; margin-bottom: .5rem; }
+  .title-slide .subtitle { font-size: 1.4rem; }
+
+  .section-divider {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .section-divider h1 { font-size: 3rem; }
+  .section-number {
+    font-size: 5rem; font-weight: 800; color: var(--accent); opacity: .3;
+    margin-bottom: .5rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     SLIDE 1 — Title
+     ============================================================ -->
+<section class="slide title-slide" id="s1">
+  <h1>Pydantic for FastAPI</h1>
+  <p class="subtitle">Request &amp; Response Schemas &middot; Custom Validators &middot; Nested Schemas &middot; Response Filtering</p>
+</section>
+
+<!-- ============================================================
+     SLIDE 2 — Agenda
+     ============================================================ -->
+<section class="slide" id="s2">
+  <h1>What We Will Cover</h1>
+  <div class="mt1">
+    <div class="box box-blue">
+      <h3>1. Request &amp; Response Schemas</h3>
+      <p>Why Pydantic over raw dicts &middot; <code>BaseModel</code> basics &middot; <code>Field()</code> constraints &middot; <code>response_model</code></p>
+    </div>
+    <div class="box box-green">
+      <h3>2. Custom Validators &amp; Nested Schemas</h3>
+      <p><code>@field_validator</code> &middot; <code>@model_validator</code> &middot; <code>EmailStr</code> &middot; Nested models &middot; <code>from_attributes</code></p>
+    </div>
+    <div class="box box-orange">
+      <h3>3. Response Filtering &amp; Security</h3>
+      <p>Allowlist pattern &middot; Hiding internal fields &middot; Different shapes for list vs detail</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 3 — What is Pydantic?
+     ============================================================ -->
+<section class="slide" id="s4">
+  <h1>What is Pydantic?</h1>
+  <p>Pydantic is Python's most popular <strong>data validation library</strong>. You define a class, declare the fields and their types, and Pydantic handles the rest.</p>
+
+  <div class="mt1">
+    <h3>Three things it gives you (for free)</h3>
+    <table>
+      <tr><th>Feature</th><th>What it does</th></tr>
+      <tr><td><strong>Validation</strong></td><td>Rejects bad data before your code ever runs</td></tr>
+      <tr><td><strong>Serialization</strong></td><td>Converts Python objects &rarr; JSON-safe dicts</td></tr>
+      <tr><td><strong>Documentation</strong></td><td>FastAPI reads your schema to generate Swagger docs</td></tr>
+    </table>
+  </div>
+
+  <div class="box box-blue mt2">
+    <p><strong>Key idea:</strong> Define the shape of data <em>once</em> as a class, and Pydantic validates incoming data, serializes outgoing data, and documents your API &mdash; all from that one definition.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 4 — Prerequisites & Packages
+     ============================================================ -->
+     <section class="slide" id="s3">
+      <h2>Prerequisites &amp; Packages</h2>
+      <p>Before we begin, let's understand the packages that power Pydantic in our project:</p>
+    
+      <table class="mt1">
+        <tr><th>Package</th><th>What it does</th><th>How we use it</th></tr>
+        <tr>
+          <td><code>pydantic</code></td>
+          <td>Core data validation &amp; serialization library</td>
+          <td><code>BaseModel</code>, <code>Field</code>, <code>@field_validator</code>, <code>@model_validator</code></td>
+        </tr>
+        <tr>
+          <td><code>pydantic[email]</code></td>
+          <td>Email validation add-on (installs <code>email-validator</code>)</td>
+          <td><code>EmailStr</code> type for validating email format</td>
+        </tr>
+        <tr>
+          <td><code>pydantic-settings</code></td>
+          <td>Load &amp; validate config from environment variables / <code>.env</code></td>
+          <td><code>BaseSettings</code> in <code>config.py</code> (already in this project)</td>
+        </tr>
+        <tr>
+          <td><code>fastapi</code></td>
+          <td>Web framework &mdash; uses Pydantic under the hood</td>
+          <td>Auto-validates request bodies, powers <code>response_model</code></td>
+        </tr>
+      </table>
+    
+      <div class="box box-blue mt2">
+        <h3>In <code>pyproject.toml</code></h3>
+        <pre><code>dependencies = [
+        <span class="str">"fastapi>=0.115.0"</span>,
+        <span class="str">"pydantic[email]>=2.0.0"</span>,    <span class="cm"># core + email validation</span>
+        <span class="str">"pydantic-settings>=2.0.0"</span>,  <span class="cm"># env / .env config</span>
+        ...
+    ]</code></pre>
+      </div>
+    
+      <div class="box box-green mt1">
+        <h3>Install everything</h3>
+        <pre><code>uv sync     <span class="cm"># reads pyproject.toml, installs all dependencies</span></code></pre>
+        <p style="margin-top:.5rem;"><strong>Note:</strong> <code>pydantic</code> comes bundled with <code>fastapi</code>, but we declare <code>pydantic[email]</code> explicitly because <code>EmailStr</code> needs the optional <code>email-validator</code> package.</p>
+      </div>
+    </section>
+
+<!-- ============================================================
+     SLIDE — pydantic-settings
+     ============================================================ -->
+<section class="slide" id="s-settings">
+  <h2><code>pydantic-settings</code> &mdash; Config from Environment</h2>
+  <p><code>BaseSettings</code> works like <code>BaseModel</code>, but reads values from <strong>environment variables</strong> and <code>.env</code> files instead of JSON bodies.</p>
+
+  <div class="cols mt1">
+    <div>
+      <div class="col-label" style="color:var(--red);">Without pydantic-settings</div>
+      <pre><code><span class="kw">import</span> os
+
+db_url = os.getenv(<span class="str">"DATABASE_URL"</span>)
+<span class="cm"># could be None &mdash; no error
+# until you actually use it!</span>
+
+debug = os.getenv(<span class="str">"DEBUG"</span>)
+<span class="cm"># returns "true" (a string)
+# not True (a bool)</span></code></pre>
+    </div>
+    <div>
+      <div class="col-label" style="color:var(--green);">With pydantic-settings</div>
+      <pre><code><span class="kw">from</span> pydantic_settings <span class="kw">import</span> BaseSettings
+
+<span class="kw">class</span> <span class="fn">Settings</span>(BaseSettings):
+<span class="hi">    database_url: <span class="typ">str</span>              <span class="cm"># required</span></span>
+<span class="hi">    app_env: <span class="typ">str</span> = <span class="str">"development"</span>  <span class="cm"># optional</span></span>
+<span class="hi">    debug: <span class="typ">bool</span> = <span class="kw">False</span>          <span class="cm"># auto-coerces</span></span>
+
+    model_config = SettingsConfigDict(
+        env_file=<span class="str">".env"</span>,
+    )
+
+settings = Settings()</code></pre>
+    </div>
+  </div>
+
+  <div class="box box-green mt1">
+    <h3>Why this matters</h3>
+    <table>
+      <tr><th>Feature</th><th>What it does</th></tr>
+      <tr><td><strong>Fail-fast validation</strong></td><td>Missing <code>DATABASE_URL</code>? App crashes at startup with a clear error &mdash; not later at the first DB query</td></tr>
+      <tr><td><strong>Type coercion</strong></td><td><code>"true"</code> &rarr; <code>True</code>, <code>"5433"</code> &rarr; <code>5433</code> &mdash; automatic</td></tr>
+      <tr><td><strong>.env file support</strong></td><td>No separate <code>python-dotenv</code> needed &mdash; built in</td></tr>
+      <tr><td><strong>Single source of truth</strong></td><td>All config in one class &mdash; easy to find, easy to document</td></tr>
+    </table>
+  </div>
+
+  <div class="box box-blue mt1">
+    <p><strong>In this project:</strong> See <code>config.py</code> &mdash; it loads <code>DATABASE_URL</code>, <code>APP_ENV</code>, and <code>DEBUG</code> from <code>.env</code> in development, and from real environment variables in staging/production.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION DIVIDER — Topic 1
+     ============================================================ -->
+<section class="slide section-divider" id="s4">
+  <div class="section-number">01</div>
+  <h1>Request &amp; Response Schemas</h1>
+  <p class="subtitle">Replacing raw dicts with typed, validated models</p>
+</section>
+
+<!-- ============================================================
+     SLIDE 5 — The Problem: raw dict
+     ============================================================ -->
+<section class="slide" id="s5">
+  <h2>The Problem: Raw <code>dict</code> Bodies</h2>
+  <p>Our <strong>employees</strong> router accepted input as a raw dict:</p>
+
+  <pre><code><span class="dec">@router.post</span>(<span class="str">""</span>, status_code=status.HTTP_201_CREATED)
+<span class="kw">def</span> <span class="fn">create_employee</span>(body: <span class="typ">dict</span> = Body(...), db: Session = Depends(get_db)):
+    <span class="kw">return</span> employee_service.create(db, body.get(<span class="str">"name"</span>), body.get(<span class="str">"email"</span>)).to_api_dict()</code></pre>
+
+  <div class="box box-red">
+    <h3>What could go wrong?</h3>
+    <ul>
+      <li>Client sends <code>{"nme": "Alice"}</code> (typo) &mdash; no error, <code>name</code> is silently <code>None</code></li>
+      <li>Client sends <code>{"name": 123, "email": true}</code> &mdash; accepted, crashes later</li>
+      <li>Client sends <code>{"name": "Alice", "email": "a@b.com", "hack": true}</code> &mdash; extra key silently ignored</li>
+      <li>Swagger docs cannot show what fields are expected</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 6 — The Fix: BaseModel
+     ============================================================ -->
+<section class="slide" id="s6">
+  <h2>The Fix: <code>BaseModel</code></h2>
+  <p>Define a Pydantic schema for the request body:</p>
+
+  <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, ConfigDict, EmailStr, Field
+
+<span class="kw">class</span> <span class="fn">EmployeeCreate</span>(BaseModel):
+<span class="hi">    model_config = ConfigDict(str_strip_whitespace=<span class="kw">True</span>, extra=<span class="str">"forbid"</span>)</span>
+<span class="hi">    name:  <span class="typ">str</span>       = Field(min_length=<span class="num">1</span>)</span>
+<span class="hi">    email: <span class="typ">EmailStr</span></span>
+<span class="hi">    age:   <span class="typ">int | None</span> = <span class="kw">None</span></span></code></pre>
+
+  <div class="cols mt1">
+    <div class="box box-green">
+      <h3>What we get</h3>
+      <ul>
+        <li><code>name</code> must be a non-empty <strong>string</strong> &mdash; <code>Field(min_length=1)</code></li>
+        <li><code>email</code> must be a valid email &mdash; <code>EmailStr</code></li>
+        <li><code>age</code> is optional &mdash; defaults to <code>None</code></li>
+        <li>Whitespace stripped before validation &mdash; <code>str_strip_whitespace</code></li>
+        <li>Extra keys rejected &mdash; <code>extra="forbid"</code></li>
+      </ul>
+    </div>
+    <div class="box box-blue">
+      <h3>In the router</h3>
+      <pre><code><span class="dec">@router.post</span>(<span class="str">""</span>, ...)
+<span class="kw">def</span> <span class="fn">create_employee</span>(
+    body: <span class="typ">EmployeeCreate</span>,
+    db: Session = Depends(get_db),
+):
+    <span class="kw">return</span> employee_service.create(db, body)</code></pre>
+      <p style="margin-top:.5rem;">FastAPI validates the body <em>before</em> your function runs.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 7 — Field() Constraints
+     ============================================================ -->
+<section class="slide" id="s7">
+  <h2><code>Field()</code> Constraints</h2>
+  <p>Pydantic's <code>Field()</code> lets you add validation rules directly on the field definition:</p>
+
+  <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
+
+<span class="kw">class</span> <span class="fn">EmployeeCreate</span>(BaseModel):
+    name:  <span class="typ">str</span>       = Field(min_length=<span class="num">1</span>)  <span class="cm"># must not be empty</span>
+    email: <span class="typ">EmailStr</span>                        <span class="cm"># validated email format</span>
+    age:   <span class="typ">int | None</span> = <span class="kw">None</span>               <span class="cm"># optional field</span></code></pre>
+
+  <table class="mt1">
+    <tr><th>Constraint</th><th>Applies to</th><th>Meaning</th></tr>
+    <tr><td><code>min_length</code></td><td>str</td><td>Minimum string length</td></tr>
+    <tr><td><code>max_length</code></td><td>str</td><td>Maximum string length</td></tr>
+    <tr><td><code>ge</code></td><td>int / float</td><td>Greater than or equal to (&ge;)</td></tr>
+    <tr><td><code>le</code></td><td>int / float</td><td>Less than or equal to (&le;)</td></tr>
+    <tr><td><code>gt</code></td><td>int / float</td><td>Strictly greater than (&gt;)</td></tr>
+    <tr><td><code>pattern</code></td><td>str</td><td>Must match a regex pattern</td></tr>
+    <tr><td><code>default</code></td><td>any</td><td>Default value if not provided</td></tr>
+  </table>
+</section>
+
+<!-- ============================================================
+     SLIDE 8 — model_config
+     ============================================================ -->
+<section class="slide" id="s8">
+  <h2><code>model_config</code> &mdash; Class-Wide Settings</h2>
+  <p>Configure behavior for the entire schema using <code>ConfigDict</code>:</p>
+
+  <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, ConfigDict
+
+<span class="kw">class</span> <span class="fn">EmployeeCreate</span>(BaseModel):
+    model_config = ConfigDict(
+<span class="hi">        str_strip_whitespace=<span class="kw">True</span>,   <span class="cm"># "  Alice  " &rarr; "Alice"</span></span>
+<span class="hi">        extra=<span class="str">"forbid"</span>,              <span class="cm"># reject unknown keys</span></span>
+    )
+    name: <span class="typ">str</span> = Field(min_length=<span class="num">1</span>)</code></pre>
+
+  <table class="mt1">
+    <tr><th>Setting</th><th>Effect</th></tr>
+    <tr><td><code>str_strip_whitespace=True</code></td><td>Auto-strips leading/trailing spaces from all <code>str</code> fields</td></tr>
+    <tr><td><code>extra="forbid"</code></td><td>Raises error if client sends unknown keys</td></tr>
+    <tr><td><code>extra="ignore"</code></td><td>Silently drops unknown keys (default)</td></tr>
+    <tr><td><code>from_attributes=True</code></td><td>Read data from object attributes (ORM models) instead of dicts</td></tr>
+  </table>
+
+  <div class="box box-blue mt1">
+    <p><strong>Tip:</strong> Use <code>extra="forbid"</code> on request schemas to catch typos early.
+    Use <code>from_attributes=True</code> on response schemas to serialize ORM objects.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 9 — response_model
+     ============================================================ -->
+<section class="slide" id="s9">
+  <h2><code>response_model</code> &mdash; Controlling the Output</h2>
+  <p>Tell FastAPI <em>what shape</em> the response should have:</p>
+
+  <div class="cols">
+    <div>
+      <div class="col-label" style="color:var(--red);">Before (raw dict)</div>
+      <pre><code><span class="dec">@router.get</span>(<span class="str">"/{employee_id}"</span>)
+<span class="kw">def</span> <span class="fn">get_employee</span>(
+    employee_id: <span class="typ">int</span>, ...
+):
+    <span class="kw">return</span> employee_service \
+        .get_by_id(db, employee_id) \
+        .to_api_dict()
+
+<span class="cm"># Returns everything including
+# deleted_at, internal fields...</span></code></pre>
+    </div>
+    <div>
+      <div class="col-label" style="color:var(--green);">After (response_model)</div>
+      <pre><code><span class="dec">@router.get</span>(
+    <span class="str">"/{employee_id}"</span>,
+<span class="hi">    response_model=<span class="typ">EmployeeResponse</span>,</span>
+)
+<span class="kw">def</span> <span class="fn">get_employee</span>(
+    employee_id: <span class="typ">int</span>, ...
+):
+    <span class="kw">return</span> employee_service \
+        .get_by_id(db, employee_id)
+
+<span class="cm"># Pydantic serializes &amp; filters!</span></code></pre>
+    </div>
+  </div>
+
+  <div class="box box-green mt1">
+    <h3>What <code>response_model</code> does</h3>
+    <ul>
+      <li>Serializes the return value through the Pydantic schema</li>
+      <li>Only fields declared in the schema appear in the JSON</li>
+      <li>Generates accurate Swagger response documentation</li>
+      <li>Acts as a <strong>security allowlist</strong> &mdash; internal fields never leak</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 10 — 422 Error
+     ============================================================ -->
+<section class="slide" id="s10">
+  <h2>What Happens When Validation Fails?</h2>
+  <p>FastAPI returns a <strong>422 Unprocessable Entity</strong> with details about every error:</p>
+
+  <div class="cols">
+    <div>
+      <div class="col-label">Bad request</div>
+      <pre><code>POST /employees
+{
+  <span class="str">"name"</span>: <span class="str">""</span>,
+  <span class="str">"email"</span>: <span class="str">"not-an-email"</span>,
+  <span class="str">"age"</span>: <span class="num">-5</span>,
+  <span class="str">"secret"</span>: <span class="str">"hack"</span>
+}</code></pre>
+    </div>
+    <div>
+      <div class="col-label">422 response</div>
+      <pre><code>{
+  <span class="str">"detail"</span>: [
+    {<span class="str">"loc"</span>: [<span class="str">"body"</span>,<span class="str">"name"</span>],
+     <span class="str">"msg"</span>: <span class="str">"String should have at
+            least 1 character"</span>},
+    {<span class="str">"loc"</span>: [<span class="str">"body"</span>,<span class="str">"email"</span>],
+     <span class="str">"msg"</span>: <span class="str">"value is not a valid
+            email address"</span>},
+    {<span class="str">"loc"</span>: [<span class="str">"body"</span>,<span class="str">"age"</span>],
+     <span class="str">"msg"</span>: <span class="str">"Input should be &gt;= 0"</span>},
+    {<span class="str">"loc"</span>: [<span class="str">"body"</span>,<span class="str">"secret"</span>],
+     <span class="str">"msg"</span>: <span class="str">"Extra inputs are not
+            permitted"</span>}
+  ]
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="box box-blue mt1">
+    <p><strong>Notice:</strong> ALL errors are reported at once, not just the first one. This makes it easy for the client to fix everything in one go.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION DIVIDER — Topic 2
+     ============================================================ -->
+<section class="slide section-divider" id="s11">
+  <div class="section-number">02</div>
+  <h1>Custom Validators &amp; Nested Schemas</h1>
+  <p class="subtitle">Going beyond built-in constraints</p>
+</section>
+
+<!-- ============================================================
+     SLIDE 12 — @field_validator
+     ============================================================ -->
+<section class="slide" id="s12">
+  <h2><code>@field_validator</code> &mdash; Single-Field Rules</h2>
+  <p>When <code>Field()</code> constraints are not enough, write a custom validator:</p>
+
+  <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, field_validator
+
+<span class="kw">class</span> <span class="fn">AddressCreate</span>(BaseModel):
+    line1:       <span class="typ">str</span> = Field(min_length=<span class="num">1</span>, max_length=<span class="num">255</span>)
+    city:        <span class="typ">str</span> = Field(min_length=<span class="num">1</span>, max_length=<span class="num">120</span>)
+    postal_code: <span class="typ">str</span> = Field(min_length=<span class="num">1</span>, max_length=<span class="num">32</span>)
+    country:     <span class="typ">str</span> = Field(min_length=<span class="num">1</span>, max_length=<span class="num">120</span>)
+
+<span class="hi">    <span class="dec">@field_validator</span>(<span class="str">"postal_code"</span>)</span>
+<span class="hi">    <span class="dec">@classmethod</span></span>
+<span class="hi">    <span class="kw">def</span> <span class="fn">validate_postal_code</span>(cls, v: <span class="typ">str</span>) -> <span class="typ">str</span>:</span>
+<span class="hi">        <span class="kw">if not</span> v.isdigit():</span>
+<span class="hi">            <span class="kw">raise</span> ValueError(<span class="str">"Postal code must contain only digits (0-9)"</span>)</span>
+<span class="hi">        <span class="kw">return</span> v</span></code></pre>
+
+  <div class="box box-blue mt1">
+    <h3>Rules for <code>@field_validator</code></h3>
+    <ul>
+      <li>Decorate with <code>@field_validator("field_name")</code> and <code>@classmethod</code></li>
+      <li>Receives the field value (already type-checked) as <code>v</code></li>
+      <li>Raise <code>ValueError</code> to reject &mdash; Pydantic converts it to a 422 error</li>
+      <li>Return the (possibly transformed) value</li>
+    </ul>
+    <h3>Alternatives to <code>@field_validator</code></h3>
+    <ul>
+      <li><code>Field(pattern=...)</code> &mdash; digits only like <code>isdigit()</code>: <code>postal_code: str = Field(min_length=1, pattern=r"^\d+$")</code></li>
+      <li>Database <code>CHECK</code> constraint so invalid values cannot be stored even if the API is bypassed</li>
+    </ul>
+  </div>
+</section>
+<!-- ============================================================
+     SLIDE 13 — EmailStr
+     ============================================================ -->
+<section class="slide" id="s13">
+  <h2><code>EmailStr</code> &mdash; Built-In Email Validation</h2>
+  <p>Pydantic ships with an email type (requires <code>pydantic[email]</code>):</p>
+
+  <div class="cols">
+    <div>
+      <div class="col-label" style="color:var(--red);">Before</div>
+      <pre><code><span class="kw">class</span> <span class="fn">EmployeeCreate</span>(BaseModel):
+    name:  <span class="typ">str</span> = Field(min_length=<span class="num">1</span>)
+    email: <span class="typ">str</span> = Field(min_length=<span class="num">1</span>)
+    <span class="cm"># accepts "not-an-email" !</span></code></pre>
+    </div>
+    <div>
+      <div class="col-label" style="color:var(--green);">After</div>
+      <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> EmailStr
+
+<span class="kw">class</span> <span class="fn">EmployeeCreate</span>(BaseModel):
+    name:  <span class="typ">str</span>      = Field(min_length=<span class="num">1</span>)
+<span class="hi">    email: <span class="typ">EmailStr</span></span>
+    <span class="cm"># rejects anything without @</span></code></pre>
+    </div>
+  </div>
+
+  <div class="box box-green mt2">
+    <p><strong>Install:</strong> <code>pip install pydantic[email]</code> (or add <code>"pydantic[email]&gt;=2.0.0"</code> to <code>pyproject.toml</code>).</p>
+    <p style="margin-top:.5rem;"><strong>What it checks:</strong> Format follows RFC 5322. It does NOT verify the mailbox exists.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 14 — @model_validator
+     ============================================================ -->
+<section class="slide" id="s14">
+  <h2><code>@model_validator</code> &mdash; Cross-Field Rules</h2>
+  <p>Sometimes one field&apos;s rule depends on another &mdash; here <code>postal_code</code> length depends on <code>country</code> (after each field is validated on its own):</p>
+
+  <pre><code><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, ConfigDict, Field, field_validator, model_validator
+
+<span class="kw">class</span> <span class="fn">AddressCreate</span>(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=<span class="kw">True</span>, extra=<span class="str">"forbid"</span>)
+
+    line1:       <span class="typ">str</span> = Field(min_length=<span class="num">1</span>)
+    city:        <span class="typ">str</span> = Field(min_length=<span class="num">1</span>)
+    postal_code: <span class="typ">str</span> = Field(min_length=<span class="num">1</span>)
+    country:     <span class="typ">str</span> = Field(min_length=<span class="num">1</span>)
+
+    <span class="dec">@field_validator</span>(<span class="str">"postal_code"</span>)
+    <span class="dec">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">validate_postal_code</span>(cls, v: <span class="typ">str</span>) -> <span class="typ">str</span>:
+        <span class="kw">if not</span> v.isdigit():
+            <span class="kw">raise</span> ValueError(<span class="str">"Postal code must contain only digits (0-9)"</span>)
+        <span class="kw">return</span> v
+
+<span class="hi">    <span class="dec">@model_validator</span>(mode=<span class="str">"after"</span>)</span>
+<span class="hi">    <span class="kw">def</span> <span class="fn">postal_code_length_for_country</span>(self):</span>
+<span class="hi">        country = self.country.strip().upper()</span>
+<span class="hi">        n = <span class="kw">len</span>(self.postal_code)</span>
+<span class="hi">        <span class="kw">if</span> country <span class="kw">in</span> (<span class="str">"US"</span>, <span class="str">"USA"</span>) <span class="kw">and</span> n != <span class="num">5</span>:</span>
+<span class="hi">            <span class="kw">raise</span> ValueError(<span class="str">"US ZIP codes must be exactly 5 digits"</span>)</span>
+<span class="hi">        <span class="kw">elif</span> country == <span class="str">"IN"</span> <span class="kw">and</span> n != <span class="num">6</span>:</span>
+<span class="hi">            <span class="kw">raise</span> ValueError(<span class="str">"Indian PIN codes must be exactly 6 digits"</span>)</span>
+<span class="hi">        <span class="kw">return</span> self</span></code></pre>
+
+  <p class="mt1" style="color:var(--muted);">Other countries: only the digit rule applies (any length &ge; 1). See <code>employees/schemas.py</code> &mdash; <code>AddressCreate</code>.</p>
+
+  <div class="box box-blue mt1">
+    <h3><code>@field_validator</code> vs <code>@model_validator</code></h3>
+    <table>
+      <tr><th></th><th>@field_validator</th><th>@model_validator</th></tr>
+      <tr><td><strong>Scope</strong></td><td>One field at a time</td><td>Entire model (all fields)</td></tr>
+      <tr><td><strong>Access</strong></td><td>Receives field value <code>v</code></td><td>Receives <code>self</code> (all fields)</td></tr>
+      <tr><td><strong>Use case</strong></td><td>Format checks, ranges</td><td>Cross-field dependencies</td></tr>
+      <tr><td><strong>Decorator</strong></td><td>Needs <code>@classmethod</code></td><td>No <code>@classmethod</code> for <code>mode="after"</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 15 — Nested Schemas
+     ============================================================ -->
+<section class="slide" id="s15">
+  <h2>Nested Schemas</h2>
+  <p>Real APIs return <em>nested objects</em>. Pydantic schemas can contain other schemas:</p>
+
+  <pre><code><span class="kw">class</span> <span class="fn">DepartmentMinimalResponse</span>(BaseModel):
+    model_config = ConfigDict(from_attributes=<span class="kw">True</span>)
+    id:   <span class="typ">int</span>
+    name: <span class="typ">str</span>
+
+<span class="kw">class</span> <span class="fn">AddressResponse</span>(BaseModel):
+    model_config = ConfigDict(from_attributes=<span class="kw">True</span>)
+    id:          <span class="typ">int</span>
+    line1:       <span class="typ">str</span>
+    city:        <span class="typ">str</span>
+    postal_code: <span class="typ">str</span>
+    country:     <span class="typ">str</span>
+
+<span class="kw">class</span> <span class="fn">EmployeeResponse</span>(BaseModel):
+    model_config = ConfigDict(from_attributes=<span class="kw">True</span>)
+    id:    <span class="typ">int</span>
+    name:  <span class="typ">str</span>
+    email: <span class="typ">EmailStr</span>
+    age:   <span class="typ">int | None</span>
+<span class="hi">    departments:      <span class="typ">list[DepartmentMinimalResponse] | None</span></span>
+<span class="hi">    addresses: <span class="typ">list[AddressResponse] | None</span></span></code></pre>
+
+  <div class="box box-green mt1">
+    <p><strong>Key point:</strong> Each nested object is validated by its own schema. If a department is missing <code>name</code>, you get a clear error &mdash; even inside a nested list.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 16 — from_attributes
+     ============================================================ -->
+<section class="slide" id="s16">
+  <h2><code>from_attributes = True</code></h2>
+  <p>How Pydantic reads data from SQLAlchemy ORM objects (instead of dicts):</p>
+
+  <div class="cols">
+    <div>
+      <div class="col-label" style="color:var(--red);">Without from_attributes</div>
+      <pre><code><span class="cm"># Pydantic expects a dict:</span>
+EmployeeResponse(**{
+    <span class="str">"id"</span>: <span class="num">1</span>,
+    <span class="str">"name"</span>: <span class="str">"Alice Smith"</span>,
+    <span class="str">"email"</span>: <span class="str">"alice@example.com"</span>,
+    ...
+})
+
+<span class="cm"># So you need .to_api_dict()
+# on every ORM object!</span></code></pre>
+    </div>
+    <div>
+      <div class="col-label" style="color:var(--green);">With from_attributes</div>
+      <pre><code><span class="kw">class</span> <span class="fn">EmployeeResponse</span>(BaseModel):
+    model_config = ConfigDict(
+<span class="hi">        from_attributes=<span class="kw">True</span></span>
+    )
+
+<span class="cm"># Now Pydantic reads .id, .name, .email
+# directly from the ORM object:</span>
+emp = db.query(Employee).first()
+EmployeeResponse.model_validate(emp)
+<span class="cm"># FastAPI does this automatically
+# when you set response_model</span></code></pre>
+    </div>
+  </div>
+
+  <div class="box box-blue mt1">
+    <p><strong>Bottom line:</strong> With <code>from_attributes=True</code> and <code>response_model</code>, you return the ORM object directly from your service &mdash; no manual <code>.to_api_dict()</code> needed.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION DIVIDER — Topic 3
+     ============================================================ -->
+<section class="slide section-divider" id="s17">
+  <div class="section-number">03</div>
+  <h1>Response Filtering &amp; Security</h1>
+  <p class="subtitle">Controlling what the client sees</p>
+</section>
+
+<!-- ============================================================
+     SLIDE 18 — The Security Problem
+     ============================================================ -->
+<section class="slide" id="s18">
+  <h2>The Problem: Leaking Internal Data</h2>
+  <p>When you return raw dicts or ORM objects without a response schema, <em>everything</em> goes to the client:</p>
+
+  <pre><code><span class="cm">// What the client sees when there is no response schema:</span>
+{
+  <span class="str">"id"</span>: <span class="num">1</span>,
+  <span class="str">"name"</span>: <span class="str">"Alice Smith"</span>,
+  <span class="str">"email"</span>: <span class="str">"alice@example.com"</span>,
+  <span class="str">"age"</span>: <span class="num">28</span>,
+<span class="hi">  <span class="str">"deleted_at"</span>: <span class="kw">null</span>,           <span class="cm">// internal soft-delete flag</span></span>
+<span class="hi">  <span class="str">"password_hash"</span>: <span class="str">"$2b$12..."</span>, <span class="cm">// if we add auth later!</span></span>
+<span class="hi">  <span class="str">"internal_notes"</span>: <span class="str">"..."</span>      <span class="cm">// any future internal field</span></span>
+}</code></pre>
+
+  <div class="box box-red mt1">
+    <h3>Why this is dangerous</h3>
+    <ul>
+      <li>New columns added to the database are <strong>automatically exposed</strong> to every client</li>
+      <li>Soft-delete flags, password hashes, audit trails &mdash; all visible</li>
+      <li>You have to remember to exclude fields manually every time</li>
+      <li>One forgotten field = a security vulnerability</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 19 — Response Schemas as Allowlist
+     ============================================================ -->
+<section class="slide" id="s19">
+  <h2>Response Schemas = Allowlist</h2>
+  <p>A response schema declares <em>exactly</em> which fields the client should see. Anything not listed is automatically excluded.</p>
+
+  <div class="cols">
+    <div>
+      <div class="col-label">ORM model (all fields)</div>
+      <pre><code><span class="kw">class</span> <span class="fn">Employee</span>(Entity):
+    name:       <span class="typ">str</span>
+    email:      <span class="typ">str</span>
+    age:        <span class="typ">int | None</span>
+    <span class="cm"># inherited from Entity:</span>
+    id:         <span class="typ">int</span>
+    created_at: <span class="typ">datetime</span>
+    updated_at: <span class="typ">datetime</span>
+<span class="hi">    deleted_at: <span class="typ">datetime | None</span></span></code></pre>
+    </div>
+    <div>
+      <div class="col-label">Response schema (allowlist)</div>
+      <pre><code><span class="kw">class</span> <span class="fn">EmployeeResponse</span>(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=<span class="kw">True</span>
+    )
+    id:    <span class="typ">int</span>
+    name:  <span class="typ">str</span>
+    email: <span class="typ">EmailStr</span>
+    age:   <span class="typ">int | None</span>
+    ...
+    <span class="cm"># deleted_at is NOT here
+    # &rarr; never sent to the client!</span></code></pre>
+    </div>
+  </div>
+
+  <div class="box box-green mt1">
+    <p><strong>The rule:</strong> If it is not declared in the response schema, it does not exist in the API response. New database columns are hidden by default. You must <em>opt-in</em> to expose a field.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 20 — Different Shapes
+     ============================================================ -->
+<section class="slide" id="s20">
+  <h2>Different Shapes: List vs Detail</h2>
+  <p>You can define different response schemas for different endpoints:</p>
+
+  <div class="cols">
+    <div>
+      <div class="col-label">GET /employees (list)</div>
+      <pre><code><span class="kw">class</span> <span class="fn">EmployeeListResponse</span>(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=<span class="kw">True</span>
+    )
+    id:    <span class="typ">int</span>
+    name:  <span class="typ">str</span>
+    email: <span class="typ">EmailStr</span>
+    age:   <span class="typ">int | None</span>
+    <span class="cm"># NO departments or addresses
+    # &rarr; lightweight for lists</span></code></pre>
+    </div>
+    <div>
+      <div class="col-label">GET /employees/{id} (detail)</div>
+      <pre><code><span class="kw">class</span> <span class="fn">EmployeeResponse</span>(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=<span class="kw">True</span>
+    )
+    id:               <span class="typ">int</span>
+    name:             <span class="typ">str</span>
+    email:            <span class="typ">EmailStr</span>
+    age:              <span class="typ">int | None</span>
+    departments:      <span class="typ">list[DepartmentMinimalResponse] | None</span>
+<span class="hi">    addresses: <span class="typ">list[AddressResponse] | None</span></span>
+    <span class="cm"># Full detail with addresses</span></code></pre>
+    </div>
+  </div>
+
+  <div class="box box-blue mt1">
+    <h3>Why separate schemas?</h3>
+    <ul>
+      <li><strong>Performance:</strong> List endpoints skip heavy nested data (addresses, full relations)</li>
+      <li><strong>Clarity:</strong> The Swagger docs show exactly what each endpoint returns</li>
+      <li><strong>Flexibility:</strong> Change the detail shape without affecting the list</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 21 — Filtering Soft-Deleted Data
+     ============================================================ -->
+<section class="slide" id="s21">
+  <h2>Filtering Soft-Deleted Nested Data</h2>
+  <p>An employee may have soft-deleted addresses in the database. The response schema should only show active ones:</p>
+
+  <pre><code><span class="cm"># On the ORM model:</span>
+<span class="kw">class</span> <span class="fn">Employee</span>(Entity):
+    addresses: Mapped[list[<span class="str">"Address"</span>]] = relationship(...)
+
+    <span class="dec">@property</span>
+<span class="hi">    <span class="kw">def</span> <span class="fn">addresses</span>(self) -> list[<span class="str">"Address"</span>]:</span>
+<span class="hi">        <span class="kw">return</span> [a <span class="kw">for</span> a <span class="kw">in</span> self.addresses <span class="kw">if</span> a.deleted_at <span class="kw">is</span> <span class="kw">None</span>]</span>
+
+<span class="cm"># The response schema reads from that property:</span>
+<span class="kw">class</span> <span class="fn">EmployeeResponse</span>(BaseModel):
+    model_config = ConfigDict(from_attributes=<span class="kw">True</span>)
+    ...
+<span class="hi">    addresses: <span class="typ">list[AddressResponse] | None</span></span>
+    <span class="cm"># Pydantic reads employee.addresses (the property)
+    # &rarr; soft-deleted addresses are never serialized</span></code></pre>
+
+  <div class="box box-green mt1">
+    <p><strong>Pattern:</strong> <code>from_attributes=True</code> reads Python <code>@property</code> methods too, not just columns. Use properties to compute filtered or derived data that response schemas can pick up.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 22 — Before/After Summary
+     ============================================================ -->
+<section class="slide" id="s22">
+  <h2>Before &amp; After: Full Comparison</h2>
+
+  <div class="cols">
+    <div>
+      <div class="col-label" style="color:var(--red);">Before (raw dicts)</div>
+      <div class="box box-red">
+        <ul>
+          <li>Router accepts <code>body: dict = Body(...)</code></li>
+          <li>Service manually checks <code>isinstance(name, str)</code></li>
+          <li>Email is just <code>str</code> with <code>min_length=1</code></li>
+          <li>No age validation at all</li>
+          <li>Every endpoint calls <code>.to_api_dict()</code></li>
+          <li><code>deleted_at</code> exposed in every response</li>
+          <li>No separate list vs detail shapes</li>
+          <li>Swagger docs show generic <code>dict</code></li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="col-label" style="color:var(--green);">After (Pydantic schemas)</div>
+      <div class="box box-green">
+        <ul>
+          <li>Typed <code>EmployeeCreate</code> / <code>EmployeeUpdate</code></li>
+          <li>Pydantic validates before service runs</li>
+          <li><code>EmailStr</code> validates email format</li>
+          <li><code>AddressCreate</code>: <code>@model_validator</code> for country-specific postal length</li>
+          <li><code>response_model</code> handles serialization</li>
+          <li><code>deleted_at</code> excluded from schemas</li>
+          <li><code>EmployeeListResponse</code> vs <code>EmployeeResponse</code></li>
+          <li>Swagger shows exact request/response shapes</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     SECTION DIVIDER — Exercises
+     ============================================================ -->
+<section class="slide section-divider" id="s23">
+  <div class="section-number">04</div>
+  <h1>Exercises</h1>
+  <p class="subtitle">Try it yourself</p>
+</section>
+
+<!-- ============================================================
+     SLIDE 24 — Exercise 1
+     ============================================================ -->
+<section class="slide" id="s24">
+  <h2>Exercise 1: Add a Name Validator to DepartmentCreate</h2>
+
+  <div class="box box-orange">
+    <h3>Task</h3>
+    <p>Add a <code>@field_validator</code> to <code>DepartmentCreate</code> that rejects names containing numbers.</p>
+    <p style="margin-top:.5rem;">For example: <code>"HR"</code> should pass, but <code>"Department123"</code> should fail with a clear error message.</p>
+  </div>
+
+  <div class="mt2">
+    <h3>Hints</h3>
+    <pre><code><span class="kw">class</span> <span class="fn">DepartmentCreate</span>(BaseModel):
+    name: <span class="typ">str</span> = Field(min_length=<span class="num">1</span>, max_length=<span class="num">255</span>)
+
+    <span class="dec">@field_validator</span>(<span class="str">"name"</span>)
+    <span class="dec">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">name_must_not_contain_numbers</span>(cls, v: <span class="typ">str</span>) -> <span class="typ">str</span>:
+        <span class="cm"># Use: any(ch.isdigit() for ch in v)</span>
+        ...  <span class="cm"># your code here</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 25 — Exercise 2
+     ============================================================ -->
+<section class="slide" id="s25">
+  <h2>Exercise 2: Create a DepartmentDetailResponse</h2>
+
+  <div class="box box-orange">
+    <h3>Task</h3>
+    <p>Create a new <code>DepartmentDetailResponse</code> schema that includes a nested list of employees for the <code>GET /departments/{id}</code> endpoint.</p>
+    <ol>
+      <li>Define an <code>EmployeeBrief</code> schema with <code>id</code>, <code>name</code>, <code>email</code></li>
+      <li>Define <code>DepartmentDetailResponse</code> extending <code>DepartmentResponse</code> with an <code>employees: list[EmployeeBrief]</code> field</li>
+      <li>Update the router to use it as <code>response_model</code> for the detail endpoint</li>
+    </ol>
+  </div>
+
+  <div class="mt2">
+    <h3>Starter Code</h3>
+    <pre><code><span class="kw">class</span> <span class="fn">EmployeeBrief</span>(BaseModel):
+    model_config = ConfigDict(from_attributes=<span class="kw">True</span>)
+    ...  <span class="cm"># which fields?</span>
+
+<span class="kw">class</span> <span class="fn">DepartmentDetailResponse</span>(<span class="typ">DepartmentResponse</span>):
+    ...  <span class="cm"># add the employees list</span></code></pre>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 26 — Exercise 3
+     ============================================================ -->
+<section class="slide" id="s26">
+  <h2>Exercise 3: Add an Age Validator to EmployeeCreate</h2>
+
+  <div class="box box-orange">
+    <h3>Task</h3>
+    <p>Currently, <code>age</code> in <code>EmployeeCreate</code> is just <code>int | None = None</code> with no range check. Add a <code>@field_validator</code> that:</p>
+    <ol>
+      <li>Allows <code>None</code> (age is optional)</li>
+      <li>Rejects negative numbers with message <code>"Age cannot be negative"</code></li>
+      <li>Rejects values above 130 with message <code>"Age seems unrealistic"</code></li>
+      <li>Logs a warning (using <code>print()</code>) when age &gt; 100</li>
+    </ol>
+  </div>
+
+  <div class="mt2">
+    <h3>Hint</h3>
+    <pre><code><span class="dec">@field_validator</span>(<span class="str">"age"</span>)
+<span class="dec">@classmethod</span>
+<span class="kw">def</span> <span class="fn">validate_age</span>(cls, v: <span class="typ">int | None</span>) -> <span class="typ">int | None</span>:
+    <span class="kw">if</span> v <span class="kw">is</span> <span class="kw">None</span>:
+        <span class="kw">return</span> v
+    ...  <span class="cm"># your checks here</span></code></pre>
+    <p class="mt1"><strong>Why a <code>@field_validator</code> over <code>Field(ge=0, le=130)</code>?</strong> A custom validator lets you return <strong>domain-specific messages</strong> and add <strong>side effects</strong> (like warnings) that <code>Field()</code> constraints cannot do.</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     SLIDE 27 — Recap & Cheat Sheet
+     ============================================================ -->
+<section class="slide" id="s27">
+  <h2>Recap &amp; Cheat Sheet</h2>
+
+  <table>
+    <tr><th>Concept</th><th>What to use</th><th>Example</th></tr>
+    <tr>
+      <td>Request body validation</td>
+      <td><code>BaseModel</code> + <code>Field()</code></td>
+      <td><code>name: str = Field(min_length=1)</code></td>
+    </tr>
+    <tr>
+      <td>Email format</td>
+      <td><code>EmailStr</code></td>
+      <td><code>email: EmailStr</code></td>
+    </tr>
+    <tr>
+      <td>Single-field logic</td>
+      <td><code>@field_validator</code></td>
+      <td>Postal code digits only (<code>v.isdigit()</code>)</td>
+    </tr>
+    <tr>
+      <td>Cross-field logic</td>
+      <td><code>@model_validator</code></td>
+      <td>Postal length depends on <code>country</code> (<code>AddressCreate</code>)</td>
+    </tr>
+    <tr>
+      <td>Reject unknown keys</td>
+      <td><code>extra="forbid"</code></td>
+      <td><code>ConfigDict(extra="forbid")</code></td>
+    </tr>
+    <tr>
+      <td>Strip whitespace</td>
+      <td><code>str_strip_whitespace=True</code></td>
+      <td><code>ConfigDict(str_strip_whitespace=True)</code></td>
+    </tr>
+    <tr>
+      <td>Read ORM objects</td>
+      <td><code>from_attributes=True</code></td>
+      <td>On response schemas</td>
+    </tr>
+    <tr>
+      <td>Control API output</td>
+      <td><code>response_model=</code></td>
+      <td><code>@router.get("", response_model=List[...])</code></td>
+    </tr>
+    <tr>
+      <td>Hide internal fields</td>
+      <td>Don't declare in response</td>
+      <td>Omit <code>deleted_at</code> from response schema</td>
+    </tr>
+    <tr>
+      <td>Nested objects</td>
+      <td>Schema inside schema</td>
+      <td><code>departments: list[DepartmentMinimalResponse] | None</code></td>
+    </tr>
+  </table>
+</section>
+
+<!-- ============================================================
+     SLIDE 28 — Resources
+     ============================================================ -->
+<section class="slide" id="s28">
+  <h1>Resources</h1>
+  <div class="mt1">
+    <div class="box box-blue">
+      <h3>Official Documentation</h3>
+      <ul>
+        <li>Pydantic docs: <code>https://docs.pydantic.dev</code></li>
+        <li>FastAPI request body: <code>https://fastapi.tiangolo.com/tutorial/body/</code></li>
+        <li>FastAPI response model: <code>https://fastapi.tiangolo.com/tutorial/response-model/</code></li>
+      </ul>
+    </div>
+    <div class="box box-green">
+      <h3>This Codebase</h3>
+      <ul>
+        <li>Request schemas: <code>employees/schemas.py</code>, <code>departments/schemas.py</code></li>
+        <li>Response models on routes: <code>employees/router.py</code>, <code>departments/router.py</code></li>
+        <li>ORM &rarr; Pydantic: <code>models/employee.py</code> (<code>addresses</code> property)</li>
+      </ul>
+    </div>
+    <div class="box box-orange">
+      <h3>Key Takeaway</h3>
+      <p>Define the shape of your data as Pydantic schemas. Let Pydantic validate inputs, serialize outputs, and document your API. Do not do these things by hand.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── Navigation bar ──────────────────────────────── -->
+<div class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)">&larr; Previous</button>
+  <span id="progress">1 / 30</span>
+  <button id="nextBtn" onclick="changeSlide(1)">Next &rarr;</button>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+
+  function showSlide(n) {
+    slides.forEach(s => s.classList.remove('active'));
+    current = Math.max(0, Math.min(n, total - 1));
+    slides[current].classList.add('active');
+    document.getElementById('progress').textContent = `${current + 1} / ${total}`;
+    document.getElementById('prevBtn').disabled = current === 0;
+    document.getElementById('nextBtn').disabled = current === total - 1;
+  }
+
+  function changeSlide(dir) { showSlide(current + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); changeSlide(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); changeSlide(-1); }
+    if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+    if (e.key === 'End') { e.preventDefault(); showSlide(total - 1); }
+  });
+
+  showSlide(0);
+</script>
+</body>
+</html>
