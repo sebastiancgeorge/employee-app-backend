@@ -21,7 +21,6 @@ async def create(db: AsyncSession, name: str, employee_ids: list[int] | None = N
         await db.rollback()
         raise ConflictException(f"Department name '{name}' is already in use")
     
-    # Reload with selectinload to populate relationship
     stmt = select(Department).options(selectinload(Department.employees)).where(Department.id == department.id)
     res = await db.scalars(stmt)
     department = res.first()

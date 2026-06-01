@@ -10,7 +10,9 @@ class Settings (BaseSettings):
     app_env : str = "development"
     debug : bool = False
     jwt_expiry_minutes : int
+    jwt_expiry_refresh : int
     jwt_secret : str
+    jwt_secret_refresh : str
     jwt_algorithm : str
 
     model_config = SettingsConfigDict(env_file = ".env")
