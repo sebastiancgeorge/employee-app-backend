@@ -47,7 +47,6 @@ async def get_department_by_name(department_name: str, db: AsyncSession):
 async def update_department(department: Department, name: str, employee_ids: list[int] | None, db: AsyncSession):
     department.name = name
     if employee_ids is not None:
-        # Fetch the new set of employees
         if employee_ids:
             stmt = select(Employee).where(Employee.id.in_(employee_ids), Employee.deleted_at.is_(None))
             res = await db.scalars(stmt)
@@ -61,7 +60,6 @@ async def update_department(department: Department, name: str, employee_ids: lis
         await db.rollback()
         raise ConflictException(f"Department name '{name}' is already in use")
     
-    # Reload to ensure employees list is loaded properly
     stmt = select(Department).options(selectinload(Department.employees)).where(Department.id == department.id)
     res = await db.scalars(stmt)
     department = res.first()

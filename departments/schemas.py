@@ -16,7 +16,7 @@ class DepartmentResponse(BaseModel):
 
     id: int
     name: str
-    employee_ids: list[int] = []
+    employee_ids: list[int] | None = None
 
 class DepartmentResponseId(DepartmentResponse):
     created_at: datetime

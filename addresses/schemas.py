@@ -37,5 +37,5 @@ class AddressResponse(BaseModel):
     employee_id: int
 
 class AddressResponseId(AddressResponse):
-    create_at: datetime
+    created_at: datetime
     updated_at: datetime

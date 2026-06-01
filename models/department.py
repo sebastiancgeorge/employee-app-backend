@@ -20,3 +20,7 @@ class Department(Entity):
     id: Mapped[int] = mapped_column(Integer,autoincrement=True,primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     employees: Mapped[list["Employee"]] = relationship("Employee", secondary= "employee_departments",back_populates="departments")
+
+    @property
+    def employee_ids(self) -> list[int]:
+        return [emp.id for emp in self.employees]
