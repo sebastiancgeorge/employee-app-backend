@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import logging
 from middleware import configure_middleware
@@ -15,17 +15,14 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # await 
+    # await
     yield
 
-app = FastAPI(
-    title="Employee App",
-    description="Simple Employee App",
-    version="1.0.0",
-    lifespan=lifespan
-)
+
+app = FastAPI(title="Employee App", description="Simple Employee App", version="1.0.0", lifespan=lifespan)
 
 configure_middleware(app)
 register_exception_handler(app)
@@ -34,10 +31,13 @@ app.include_router(employee_router)
 app.include_router(address_router)
 app.include_router(department_router)
 
+
 @app.get("/health", tags=["Health"])
 async def health_check():
-    return{"status":"healthy", "message": f"Employee CRUD API is running Environment : {settings.app_env}"}
+    return {"status": "healthy", "message": f"Employee CRUD API is running Environment : {settings.app_env}"}
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.0", port= 8000, reload=True)
+
+    uvicorn.run("main:app", host="127.0.0.0", port=8000, reload=True)

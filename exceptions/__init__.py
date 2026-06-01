@@ -1,5 +1,6 @@
 """Application level exceptions"""
 
+
 class AppException(Exception):
     """Base for all application-level errors."""
 
@@ -19,8 +20,10 @@ class ConflictException(AppException):
 class BadRequestException(AppException):
     """Client input is invalid in a way Pydantic validation didn't catch."""
 
+
 class UnauthorizedException(AppException):
     """Invalid email or password"""
+
 
 class ForbiddenException(AppException):
     """Not authorised to do this action"""

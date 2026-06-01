@@ -6,31 +6,38 @@ from models.employee import EmployeeRole
 from datetime import datetime
 
 from exceptions import NotFoundException, BadRequestException
-from addresses.service import create as create_address    
+from addresses.service import create as create_address
 from departments import service as department_service
 from auth.utils import hash_password
 from employees import repo
 
-async def create(db:AsyncSession, name: str, email: str, password: str, role:EmployeeRole, age: int | None = None, address = None)->Employee:
+
+async def create(
+    db: AsyncSession, name: str, email: str, password: str, role: EmployeeRole, age: int | None = None, address=None
+) -> Employee:
     employee = await repo.create(db, name=name, email=email, password_hash=hash_password(password), age=age, role=role)
     if address is not None:
         await create_address(db, address.line1, address.city, address.postal_code, address.country, employee.id)
     return employee
 
-async def get_all_employees(db: AsyncSession ):
+
+async def get_all_employees(db: AsyncSession):
     return await repo.get_all_employees(db)
 
-async def get_employee_by_name(employee_name: str,db: AsyncSession):
-    employee = await repo.get_employee_by_name(employee_name,db)
+
+async def get_employee_by_name(employee_name: str, db: AsyncSession):
+    employee = await repo.get_employee_by_name(employee_name, db)
     if employee is None:
         raise NotFoundException("Employees not found")
     return employee
 
-async def get_employee_by_id(employee_id: int,db: AsyncSession):
-    employee = await repo.get_employee_by_id(employee_id,db)
+
+async def get_employee_by_id(employee_id: int, db: AsyncSession):
+    employee = await repo.get_employee_by_id(employee_id, db)
     if employee is None:
         raise NotFoundException(f"Employee with id: {employee_id} not found")
     return employee
+
 
 async def update_employee(employee_id: int, name: str, email: str, age: int | None, db: AsyncSession):
     employee = await repo.get_employee_by_id(employee_id, db)
@@ -43,50 +50,56 @@ async def update_employee(employee_id: int, name: str, email: str, age: int | No
 
     employee.name = name.strip()
     employee.email = email.strip()
-    
+
     result = await repo.update_employee(employee, email, db)
     return result
 
+
 async def soft_delete_employee(employee_id: int, db: AsyncSession):
-    employee = await repo.get_employee_by_id(employee_id,db)
+    employee = await repo.get_employee_by_id(employee_id, db)
     if employee is None:
         raise NotFoundException(f"Employee with id:{employee_id} not found")
     employee.deleted_at = datetime.now()
     await repo.soft_delete_employee(employee, db)
     return
 
+
 async def attach_department(employee_id: int, department_id: int, db: AsyncSession):
     employee = await repo.get_employee_by_id_with_departments(employee_id, db)
     if employee is None:
         raise NotFoundException(f"Employee with id {employee_id} not found")
-    
+
     from departments import service as department_service
+
     department = await department_service.get_department_by_id(department_id, db)
-    
+
     if department not in employee.departments:
         employee.departments.append(department)
         await db.commit()
     return employee
 
+
 async def detach_department(employee_id: int, department_id: int, db: AsyncSession):
     employee = await repo.get_employee_by_id_with_departments(employee_id, db)
     if employee is None:
         raise NotFoundException(f"Employee with id {employee_id} not found")
-    
+
     department = await department_service.get_department_by_id(department_id, db)
-    
+
     if department in employee.departments:
         employee.departments.remove(department)
         await db.commit()
     return employee
 
+
 async def delete_employee_address(employee_id: int, address_id: int, db: AsyncSession):
     await get_employee_by_id(employee_id, db)
-    
+
     from addresses import service as address_service
+
     address = await address_service.get_address_by_id(address_id, db)
     if address.employee_id != employee_id:
         raise BadRequestException("Address does not belong to this employee")
-        
+
     await address_service.soft_delete_address(address_id, db)
     return
