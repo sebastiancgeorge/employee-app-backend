@@ -1,8 +1,7 @@
 from pydantic import BaseModel
-
-
+from models.employee import EmployeeRole
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
 
 class TokenResponse(BaseModel):
@@ -14,3 +13,12 @@ class TokenPayload(BaseModel):
 
     id: int
     email: str
+    role: EmployeeRole
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str |None = None
+    token_type: str | None = "bearer"

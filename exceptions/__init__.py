@@ -21,3 +21,6 @@ class BadRequestException(AppException):
 
 class UnauthorizedException(AppException):
     """Invalid email or password"""
+
+class ForbiddenException(AppException):
+    """Not authorised to do this action"""
