@@ -2,7 +2,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from models import Employee
-from fastapi import HTTPException, status
+from models.employee import EmployeeRole
 from datetime import datetime
 
 from exceptions import NotFoundException, BadRequestException
@@ -11,8 +11,8 @@ from departments import service as department_service
 from auth.utils import hash_password
 from employees import repo
 
-async def create(db:AsyncSession, name: str, email: str, password: str, age: int | None = None, address = None)->Employee:
-    employee = await repo.create(db, name, email, hash_password(password), age)
+async def create(db:AsyncSession, name: str, email: str, password: str, role:EmployeeRole, age: int | None = None, address = None)->Employee:
+    employee = await repo.create(db, name=name, email=email, password_hash=hash_password(password), age=age, role=role)
     if address is not None:
         await create_address(db, address.line1, address.city, address.postal_code, address.country, employee.id)
     return employee

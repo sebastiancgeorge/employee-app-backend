@@ -5,10 +5,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from models import Employee
+from models.employee import EmployeeRole
 from exceptions import ConflictException
 
-async def create(db:AsyncSession, name: str, email: str, password_hash : str, age: int | None = None)->Employee:
-    employee = Employee(name=name, email=email, password_hash=password_hash, age=age)
+async def create(db:AsyncSession, name: str, email: str, password_hash : str, role: EmployeeRole, age: int | None = None)->Employee:
+    employee = Employee(name=name, email=email, password_hash=password_hash, age=age,role=role)
     db.add(employee)
     try:
         await db.commit()

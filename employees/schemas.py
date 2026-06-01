@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, ConfigDict, field_validator, EmailStr, model_validator
 from datetime import datetime
+from models.employee import EmployeeRole
 
 class AddressCreate(BaseModel):
     line1 : str
@@ -29,6 +30,7 @@ class EmployeeCreate(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra= "forbid")
     name: str = Field(min_length = 1)
     email: EmailStr
+    role: EmployeeRole
     age: int | None = Field(ge = 0, le=150)
     password: str = Field(min_length=6)
     address: AddressCreate | None = None
