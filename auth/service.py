@@ -1,11 +1,10 @@
-from models import Employee
 from employees import repo
 from exceptions import UnauthorizedException
 from sqlalchemy.ext.asyncio import AsyncSession
 from auth.utils import verify_password, create_access_token, create_refresh_token, decode_refresh_token
 
 
-async def login(db: AsyncSession, email: str, password: str) -> Employee | None:
+async def login(db: AsyncSession, email: str, password: str):
     employee = await repo.get_by_email(db, email)
     if employee is None:
         raise UnauthorizedException("Invalid email or password")
